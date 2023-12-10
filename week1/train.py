@@ -25,31 +25,17 @@ class Model(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, input) -> None:
-        # print(input[:3])
-        # print(input.shape)
         x = self.embedding(input)
-
         x = torch.mean(x, dim=1)
-
         x = x.reshape(-1, x.shape[2])
-
-        # print(x.shape)
         x = self.linear(x)
-        # print(x.shape)
-
         result = self.softmax(x)
-        # print(result.shape)
-        # print(result.shape)
-        # print(result[:3])
-        # sum of all
-        # print(result[0:3].sum(dim=2))
-        # print([one_hot_to_idx(result[0]) for result in result[:3]])
         return result
 
 
 def main():
     vocab = load(open(VOCAB_FILE_PATH[3], "rb"))
-    voca_with_freq = load(open(VOCAB_FREQ_PATH, "rb"))
+    vocab_with_freq = load(open(VOCAB_FREQ_PATH, "rb"))
 
     print("vocab loaded")
 
@@ -69,7 +55,7 @@ def main():
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=0,
-        collate_fn=partial(process, vocab=vocab, voca_with_freq=voca_with_freq),
+        collate_fn=partial(process, vocab=vocab, voca_with_freq=vocab_with_freq),
     )
 
     print("training...")
@@ -89,6 +75,8 @@ def main():
             print("===========================")
             print([one_hot_to_idx(y_) for y_ in y[:3]])
             print([one_hot_to_idx(output_) for output_ in output[:3]])
+            print("===========================")
+            print("accurate counts")
             print(
                 sum(
                     [

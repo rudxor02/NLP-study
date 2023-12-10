@@ -17,7 +17,7 @@ VOCAB_FREQ_PATH = os.path.join(DATA_DIR_PATH, "vocab.pkl")
 WORDS_COUNT = 101317627
 
 
-def index_to_word(vocab: dict[str, int], idx: int):
+def index_to_word(vocab: dict[str, int], idx: int) -> str:
     return list(vocab.keys())[list(vocab.values()).index(idx)]
 
 
@@ -27,21 +27,22 @@ def main():
     print("data loaded")
 
     tokenizer = get_tokenizer("basic_english")
-    voca_with_freq = {"<unk>": [0, 50], "<pad>": [1, 50]}
+    vocab_with_freq: dict[str, list[int]] = {"<unk>": [0, 50], "<pad>": [1, 50]}
     for data in iter(train):
         for token in tokenizer(data):
-            if token not in voca_with_freq.keys():
-                voca_with_freq[token] = [len(voca_with_freq), 0]
+            if token not in vocab_with_freq.keys():
+                vocab_with_freq[token] = [len(vocab_with_freq), 0]
             else:
-                voca_with_freq[token][1] += 1
+                vocab_with_freq[token][1] += 1
     with open(VOCAB_FREQ_PATH, "wb") as f:
-        dump(voca_with_freq, f)
+        dump(vocab_with_freq, f)
+    print("vocab with freq saved")
     # 0: 226799
     # 10: 109616
     # 30: 64089
     # 50: 49092
     for loop_idx, freq in enumerate([0, 10, 30, 50]):
-        tmp_vocab = {k: v[0] for k, v in voca_with_freq.items() if v[1] >= freq}
+        tmp_vocab = {k: v[0] for k, v in vocab_with_freq.items() if v[1] >= freq}
 
         tmp_vocab = {k: i for i, k in enumerate(tmp_vocab.keys())}
 
@@ -86,5 +87,5 @@ def analyze():
 
 
 if __name__ == "__main__":
-    # main()
-    analyze()
+    main()
+    # analyze()

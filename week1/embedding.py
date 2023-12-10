@@ -1,17 +1,23 @@
 from pickle import load
+from typing import Union
 
 import torch
 from scipy import spatial
 
 from week1.train import MODEL_FILE_PATH, Model
-from week1.vocab import VOCAB_FILE_PATH, VOCAB_FREQ_PATH, index_to_word
+from week1.vocab import VOCAB_FILE_PATH, index_to_word
 
 
 def similarity(arr1, arr2):
     return 1 - spatial.distance.cosine(arr1, arr2)
 
 
-def cos_search(embedding_matrix, word_or_vector, vocab: dict, top_n=10):
+def cos_search(
+    embedding_matrix: list[list[float]],
+    word_or_vector: Union[str, list[float]],
+    vocab: dict[str, int],
+    top_n: int = 10,
+) -> list[tuple[float, str]]:
     if isinstance(word_or_vector, str):
         word_idx = vocab[word_or_vector]
         word_embedding = embedding_matrix[word_idx]
