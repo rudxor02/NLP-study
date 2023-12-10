@@ -8,7 +8,7 @@ from week1.vocab import DATA_DIR_PATH, WORDS_COUNT, index_to_word
 
 TRAIN_INPUT_DATA_PATH = os.path.join(DATA_DIR_PATH, "train.npy")
 TRAIN_TARGET_DATA_PATH = os.path.join(DATA_DIR_PATH, "target.npy")
-CBOW_WINDOW_SIZE = 5
+CBOW_WINDOW_SIZE = 4
 BATCH_SIZE = 100
 
 
@@ -34,8 +34,15 @@ def word_to_token(vocab: dict[str, int], text: str) -> int:
         return vocab["<unk>"]
 
 
-def negative_sample(vocab: dict[str, int]) -> list[str]:
-    pass
+def negative_sample(vocab: dict[str, int]) -> tuple[np.array, np.array]:
+    batch_inputs = np.random.randint(
+        0, len(vocab), size=(BATCH_SIZE * 10, CBOW_WINDOW_SIZE * 2, 1)
+    )
+    # batch_targets = np.zeros((BATCH_SIZE * 10, len(vocab)))
+    # for i in range(BATCH_SIZE * 10):
+    #     batch_targets[i][np.random.randint(0, len(vocab))] = 0.01
+    batch_targets = np.full((BATCH_SIZE * 10, len(vocab)), 1 / len(vocab))
+    return batch_inputs, batch_targets
 
 
 def subsample(
@@ -67,13 +74,16 @@ def process(
     vocab_with_freq: dict[str, tuple[int, int]],
 ):
     # print(len(data_arr))
+    # if np.random.uniform() > 0.5:
+    #     return negative_sample(vocab)
+
     batch_train_input: list[list[int]] = []
     batch_train_target: list[list[float]] = []
     one_hot_vector_dim = len(vocab)
     for idx, data in enumerate(data_arr):
         # print(data)
         tokens: list[str] = tokenizer(data)
-        tokens = subsample(tokens, vocab_with_freq, vocab)
+        # tokens = subsample(tokens, vocab_with_freq, vocab)
 
         if len(tokens) < CBOW_WINDOW_SIZE * 2 + 1:
             continue

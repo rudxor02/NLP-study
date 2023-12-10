@@ -4,6 +4,7 @@ from typing import Union
 import torch
 from scipy import spatial
 
+from week1.process import word_to_token
 from week1.train import MODEL_FILE_PATH, Model
 from week1.vocab import VOCAB_FILE_PATH, index_to_word
 
@@ -19,7 +20,7 @@ def cos_search(
     top_n: int = 10,
 ) -> list[tuple[float, str]]:
     if isinstance(word_or_vector, str):
-        word_idx = vocab[word_or_vector]
+        word_idx = word_to_token(vocab, word_or_vector)
         word_embedding = embedding_matrix[word_idx]
     else:
         word_embedding = word_or_vector
@@ -41,14 +42,15 @@ def cos_search(
 
 
 def main():
-    vocab = load(open(VOCAB_FILE_PATH[3], "rb"))
+    vocab = load(open(VOCAB_FILE_PATH[1], "rb"))
     model = Model(len_vocab=len(vocab))
-    model.load_state_dict(torch.load(MODEL_FILE_PATH + "_2_8800"))
+    model.load_state_dict(torch.load(MODEL_FILE_PATH + "_5_200"))
     search_keywords = [
         "happy",
         "tree",
         "pencil",
-        "the"
+        "king",
+        "the",
         # "cloud",
         # "king",
         # "man",
@@ -60,9 +62,9 @@ def main():
         # "france",
         # "germany",
     ]
-    # for keyword in search_keywords:
-    #     result = cos_search(model.embedding.weight, keyword, vocab)
-    #     print(result)
+    for keyword in search_keywords:
+        result = cos_search(model.embedding.weight, keyword, vocab)
+        print(result)
     man = model.embedding.weight[vocab["man"]]
     woman = model.embedding.weight[vocab["woman"]]
     queen = model.embedding.weight[vocab["queen"]]

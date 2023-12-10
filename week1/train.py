@@ -6,15 +6,15 @@ import torch
 from torch import cuda, nn, optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from torchtext.datasets import WikiText103
+from torchtext.datasets import WikiText2, WikiText103
 
 from week1.process import BATCH_SIZE, one_hot_to_idx, process
 from week1.vocab import DATA_DIR_PATH, VOCAB_FILE_PATH, VOCAB_FREQ_PATH
 
-EMBEDDING_DIM = 1000
+EMBEDDING_DIM = 300
 MODEL_FILE_PATH = os.path.join(DATA_DIR_PATH, "model")
 
-device = "cuda" if cuda.is_available() else "cpu"
+device = "cuda:0" if cuda.is_available() else "cpu"
 
 
 class Model(nn.Module):
@@ -29,12 +29,12 @@ class Model(nn.Module):
         x = torch.mean(x, dim=1)
         x = x.reshape(-1, x.shape[2])
         x = self.linear(x)
-        result = self.softmax(x)
-        return result
+        # x = self.softmax(x)
+        return x
 
 
 def main():
-    vocab = load(open(VOCAB_FILE_PATH[3], "rb"))
+    vocab = load(open(VOCAB_FILE_PATH[4], "rb"))
     vocab_with_freq = load(open(VOCAB_FREQ_PATH, "rb"))
 
     print("vocab loaded")
@@ -42,11 +42,12 @@ def main():
     model = Model(len_vocab=len(vocab))
     model.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=1e4)
+    optimizer = optim.SGD(model.parameters(), lr=0.025)
 
     print("model initialized")
 
     train, test = WikiText103(root=DATA_DIR_PATH, split=("train", "test"))
+    # train, test = WikiText2(root=DATA_DIR_PATH, split=("train", "test"))
 
     print("dataset loaded")
 
@@ -55,11 +56,11 @@ def main():
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=0,
-        collate_fn=partial(process, vocab=vocab, voca_with_freq=vocab_with_freq),
+        collate_fn=partial(process, vocab=vocab, vocab_with_freq=vocab_with_freq),
     )
 
     print("training...")
-    # model.load_state_dict(torch.load(MODEL_FILE_PATH + "_2_8800"))
+    # model.load_state_dict(torch.load(MODEL_FILE_PATH + "_5_200"))
     for epoch in range(100):
         # for idx, (x, y) in enumerate(train_loader):
         model_path = MODEL_FILE_PATH + f"_{epoch}"
@@ -72,24 +73,24 @@ def main():
             output = model(x)
             loss = criterion(output, y)
             loss.backward()
-            print("===========================")
-            print([one_hot_to_idx(y_) for y_ in y[:3]])
+            # print("===========================")
+            # print([one_hot_to_idx(y_) for y_ in y[:3]])
             print([one_hot_to_idx(output_) for output_ in output[:3]])
-            print("===========================")
-            print("accurate counts")
-            print(
-                sum(
-                    [
-                        y__ == output__
-                        for y__, output__ in zip(
-                            [one_hot_to_idx(y_) for y_ in y],
-                            [one_hot_to_idx(output_) for output_ in output],
-                        )
-                    ]
-                )
-            )
-            print(y.shape)
-            print("===========================")
+            # print("===========================")
+            # print("accurate counts")
+            # print(
+            #     sum(
+            #         [
+            #             y__ == output__
+            #             for y__, output__ in zip(
+            #                 [one_hot_to_idx(y_) for y_ in y],
+            #                 [one_hot_to_idx(output_) for output_ in output],
+            #             )
+            #         ]
+            #     )
+            # )
+            # print(y.shape)
+            # print("===========================")
             # print(x[:3])
             # print(
             #     [
