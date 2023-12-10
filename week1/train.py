@@ -34,7 +34,7 @@ class Model(nn.Module):
 
 
 def main():
-    vocab = load(open(VOCAB_FILE_PATH[4], "rb"))
+    vocab = load(open(VOCAB_FILE_PATH[7], "rb"))
     vocab_with_freq = load(open(VOCAB_FREQ_PATH, "rb"))
 
     print("vocab loaded")
@@ -60,7 +60,7 @@ def main():
     )
 
     print("training...")
-    # model.load_state_dict(torch.load(MODEL_FILE_PATH + "_5_200"))
+    # model.load_state_dict(torch.load(MODEL_FILE_PATH + "_0_500"))
     for epoch in range(100):
         # for idx, (x, y) in enumerate(train_loader):
         model_path = MODEL_FILE_PATH + f"_{epoch}"
@@ -107,7 +107,7 @@ def main():
             # print("===========================")
             optimizer.step()
             print(f"batch idx: {idx} epoch: {epoch}, loss: {loss}")
-            if idx % 100 == 0:
+            if idx % 1000 == 0:
                 torch.save(model.state_dict(), model_batch_path)
                 print(f"batch idx: {idx} epoch: {epoch}, saved model")
         torch.save(model.state_dict(), model_path)

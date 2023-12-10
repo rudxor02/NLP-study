@@ -9,7 +9,7 @@ from week1.vocab import DATA_DIR_PATH, WORDS_COUNT, index_to_word
 TRAIN_INPUT_DATA_PATH = os.path.join(DATA_DIR_PATH, "train.npy")
 TRAIN_TARGET_DATA_PATH = os.path.join(DATA_DIR_PATH, "target.npy")
 CBOW_WINDOW_SIZE = 4
-BATCH_SIZE = 100
+BATCH_SIZE = 1000
 
 
 tokenizer = get_tokenizer("basic_english")
@@ -60,7 +60,7 @@ def subsample(
     return [
         token
         for token in tokens
-        if word_to_token(vocab, token) != 0
+        if token in vocab.keys()
         and (
             np.random.uniform()
             > (1 - np.sqrt(1e-5 * WORDS_COUNT / vocab_with_freq[token][1]))
@@ -83,11 +83,14 @@ def process(
     for idx, data in enumerate(data_arr):
         # print(data)
         tokens: list[str] = tokenizer(data)
-        # tokens = subsample(tokens, vocab_with_freq, vocab)
+        tokens = subsample(tokens, vocab_with_freq, vocab)
 
         if len(tokens) < CBOW_WINDOW_SIZE * 2 + 1:
             continue
+
         for i in range(CBOW_WINDOW_SIZE, len(tokens) - CBOW_WINDOW_SIZE):
+            if tokens[i] not in vocab.keys():
+                continue
             train_input = [
                 word_to_token(vocab, token)
                 for token in tokens[i - CBOW_WINDOW_SIZE : i]

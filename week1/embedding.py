@@ -42,33 +42,32 @@ def cos_search(
 
 
 def main():
-    vocab = load(open(VOCAB_FILE_PATH[1], "rb"))
+    vocab = load(open(VOCAB_FILE_PATH[7], "rb"))
     model = Model(len_vocab=len(vocab))
-    model.load_state_dict(torch.load(MODEL_FILE_PATH + "_5_200"))
-    search_keywords = [
-        "happy",
-        "tree",
-        "pencil",
-        "king",
-        "the",
-        # "cloud",
-        # "king",
-        # "man",
-        # "woman",
-        # "bigger",
-        # "big",
-        # "small",
-        # "paris",
-        # "france",
-        # "germany",
-    ]
+    model.load_state_dict(torch.load(MODEL_FILE_PATH + "_checkpoint"))
+    search_keywords = ["happy", "tree", "pencil", "king", "cloud"]
     for keyword in search_keywords:
         result = cos_search(model.embedding.weight, keyword, vocab)
+        print(f"Search result for {keyword}")
         print(result)
+
+    king = model.embedding.weight[vocab["king"]]
     man = model.embedding.weight[vocab["man"]]
     woman = model.embedding.weight[vocab["woman"]]
-    queen = model.embedding.weight[vocab["queen"]]
-    print(cos_search(model.embedding.weight, man - woman + queen, vocab))
+    print(f"Search result for king - man + woman")
+    print(cos_search(model.embedding.weight, king - man + woman, vocab))
+
+    bigger = model.embedding.weight[vocab["bigger"]]
+    big = model.embedding.weight[vocab["big"]]
+    small = model.embedding.weight[vocab["small"]]
+    print("Search result for bigger - big + small")
+    print(cos_search(model.embedding.weight, bigger - big + small, vocab))
+
+    paris = model.embedding.weight[vocab["paris"]]
+    france = model.embedding.weight[vocab["france"]]
+    germany = model.embedding.weight[vocab["germany"]]
+    print("Search result for paris - france + germany")
+    print(cos_search(model.embedding.weight, paris - france + germany, vocab))
 
 
 def check_equal():

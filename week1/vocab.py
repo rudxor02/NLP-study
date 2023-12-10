@@ -13,6 +13,8 @@ VOCAB_FILE_PATH = [
     os.path.join(DATA_DIR_PATH, "vocab_50.pkl"),
     os.path.join(DATA_DIR_PATH, "vocab_50_10000.pkl"),
     os.path.join(DATA_DIR_PATH, "vocab_4000_8000.pkl"),
+    os.path.join(DATA_DIR_PATH, "vocab_500_35000.pkl"),
+    os.path.join(DATA_DIR_PATH, "vocab_250_35000.pkl"),
 ]
 
 VOCAB_FREQ_PATH = os.path.join(DATA_DIR_PATH, "vocab.pkl")
@@ -50,11 +52,21 @@ def main():
     # 10: 12135
     # 30: 5933
     # 50: 4036
-    for loop_idx, freq in enumerate([0, 10, 30, 50, 50]):
+    for loop_idx, freq in enumerate(
+        [
+            (0, 10000),
+            (10, 10000),
+            (30, 10000),
+            (50, 10000),
+            (50, 10000),
+            (4000, 8000),
+            (500, 35000),
+        ]
+    ):
         tmp_vocab = {
             k: v[0]
             for k, v in vocab_with_freq.items()
-            if k == "<unk>" or ((v[1] <= 10000) and (v[1] >= freq))
+            if k == "<unk>" or ((v[1] <= freq[1]) and (v[1] >= freq[0]))
         }
 
         tmp_vocab = {k: i for i, k in enumerate(tmp_vocab.keys())}
@@ -71,18 +83,18 @@ def save_vocab():
     voca_with_freq["<unk>"] = [0, 4000]
     voca_with_freq["<pad>"] = [1, 4000]
     tmp_vocab = {
-        k: v[0] for k, v in voca_with_freq.items() if (v[1] >= 4000) and (v[1] <= 8000)
+        k: v[0] for k, v in voca_with_freq.items() if (v[1] >= 250) and (v[1] <= 35000)
     }
     tmp_vocab = {k: i for i, k in enumerate(tmp_vocab.keys())}
     print(len(tmp_vocab))
-    with open(VOCAB_FILE_PATH[5], "wb") as f:
+    with open(VOCAB_FILE_PATH[7], "wb") as f:
         dump(tmp_vocab, f)
 
 
 def analyze():
     with open(VOCAB_FREQ_PATH, "rb") as f:
         voca_with_freq = load(f)
-    with open(VOCAB_FILE_PATH[3], "rb") as f:
+    with open(VOCAB_FILE_PATH[7], "rb") as f:
         vocab = load(f)
 
     print(index_to_word(vocab, 1747))
@@ -112,8 +124,29 @@ def analyze():
     # vocab_list.sort(key=lambda x: x[1][1], reverse=True)
     # print(vocab_list[:100])
 
+    search_keywords = [
+        "happy",
+        "tree",
+        "pencil",
+        "king",
+        "cloud",
+        "king",
+        "man",
+        "woman",
+        "bigger",
+        "big",
+        "small",
+        "paris",
+        "france",
+        "germany",
+    ]
+
+    for keyword in search_keywords:
+        print(keyword, voca_with_freq[keyword])
+        print(vocab[keyword])
+
 
 if __name__ == "__main__":
-    main()
-    # analyze()
+    # main()
+    analyze()
     # save_vocab()
