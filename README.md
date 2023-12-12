@@ -78,4 +78,4 @@ test accuracy: 0.679078947368421, test loss: 0.007092414534387277
 ==========
 ```
 
-![Alt text](assets/image.png)
+![Alt text](week2/assets/image.png)
