@@ -53,3 +53,29 @@ Search result for bigger - big + small
 Search result for paris - france + germany
 [(0.5483200550079346, 'paris'), (0.23175767064094543, 'administration'), (0.21463456749916077, 'synonyms'), (0.20372925698757172, 'regional'), (0.20305301249027252, 'acquisitions'), (0.20287597179412842, 'shortstop'), (0.19914253056049347, 'trigger'), (0.19742625951766968, '1960s'), (0.19466473162174225, 'steven'), (0.1933710277080536, 'topography')]
 ```
+
+# Week2
+
+```text
+=====epoch: 0=====
+train accuracy: 0.26460833333333333, train loss: 0.026916384627421696
+test accuracy: 0.28578947368421054, test loss: 0.025997021347284318
+==========
+=====epoch: 1=====
+train accuracy: 0.28068333333333334, train loss: 0.02588930862719814
+test accuracy: 0.29539473684210527, test loss: 0.025647442670244918
+==========
+
+...
+
+=====epoch: 28=====
+train accuracy: 0.704675, train loss: 0.004676316972007043
+test accuracy: 0.6977631578947369, test loss: 0.0053571457190953785
+==========
+=====epoch: 29=====
+train accuracy: 0.7059416666666667, train loss: 0.004561412637750618
+test accuracy: 0.679078947368421, test loss: 0.007092414534387277
+==========
+```
+
+![Alt text](assets/image.png)
