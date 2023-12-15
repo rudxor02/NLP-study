@@ -56,6 +56,16 @@ Search result for paris - france + germany
 
 # Week2
 
+RNN과 LSTM을 직접 구현합니다
+
+## RNN
+
+training time: 30min
+
+```bash
+python3 week2/train.py # comment out train_rnn
+```
+
 ```text
 =====epoch: 0=====
 train accuracy: 0.26460833333333333, train loss: 0.026916384627421696
@@ -69,13 +79,35 @@ test accuracy: 0.29539473684210527, test loss: 0.025647442670244918
 ...
 
 =====epoch: 28=====
-train accuracy: 0.704675, train loss: 0.004676316972007043
-test accuracy: 0.6977631578947369, test loss: 0.0053571457190953785
+train accuracy: 0.693425, train loss: 0.005580590944713913
+test accuracy: 0.6910526315789474, test loss: 0.005764961315956163
 ==========
 =====epoch: 29=====
-train accuracy: 0.7059416666666667, train loss: 0.004561412637750618
-test accuracy: 0.679078947368421, test loss: 0.007092414534387277
+train accuracy: 0.69895, train loss: 0.005184677486098371
+test accuracy: 0.6734210526315789, test loss: 0.007636408769390791
 ==========
 ```
 
-![Alt text](week2/assets/image.png)
+![Alt text](week2/assets/myRNN.png)
+
+## LSTM
+
+training time: 1h 7min
+
+```bash
+python3 week2/train.py # comment out train_lstm
+```
+
+```text
+epoch: 1, train loss: 0.8622180396080017, train acc: 0.25101666666666667
+epoch: 1, test loss: 0.8333939167381335, test acc: 0.26526315789473687
+epoch: 2, train loss: 0.8327333481152852, train acc: 0.25779166666666664
+epoch: 2, test loss: 0.8270172943838504, test acc: 0.2825
+...
+epoch: 29, train loss: 0.3950780501564344, train acc: 0.5993083333333333
+epoch: 29, test loss: 0.3479630156349735, test acc: 0.6290789473684211
+epoch: 30, train loss: 0.3883372766276201, train acc: 0.601875
+epoch: 30, test loss: 0.3415672565896471, test acc: 0.6325
+```
+
+![Alt text](week2/assets/myLSTM.png)
