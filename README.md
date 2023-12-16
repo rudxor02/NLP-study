@@ -53,3 +53,141 @@ Search result for bigger - big + small
 Search result for paris - france + germany
 [(0.5483200550079346, 'paris'), (0.23175767064094543, 'administration'), (0.21463456749916077, 'synonyms'), (0.20372925698757172, 'regional'), (0.20305301249027252, 'acquisitions'), (0.20287597179412842, 'shortstop'), (0.19914253056049347, 'trigger'), (0.19742625951766968, '1960s'), (0.19466473162174225, 'steven'), (0.1933710277080536, 'topography')]
 ```
+
+# Week2
+
+RNN과 LSTM을 직접 구현합니다
+
+## Data Analysis
+
+```bash
+python3 week2/vocab.py
+```
+
+### frequency
+
+```text
+=====test data analyze=====
+label_count: [1900, 1900, 1900, 1900]
+max_len: 161
+min_len: 14
+vocab with freq saved 25272
+vocab_0_10000 saved 25269
+vocab_10_10000 saved 3488
+vocab_30_10000 saved 1348
+vocab_50_10000 saved 808
+=====train data analyze=====
+label_count: [30000, 30000, 30000, 30000]
+max_len: 207
+min_len: 12
+vocab with freq saved 95812
+vocab_0_10000 saved 95771
+vocab_10_10000 saved 19466
+vocab_30_10000 saved 10600
+vocab_50_10000 saved 7796
+```
+
+![Alt text](week2/assets/frequency.png)
+
+## RNN
+
+training time: 30min
+
+```bash
+python3 week2/train.py # comment out train_rnn
+```
+
+```text
+epoch: 1, train loss: 1.405393164730072, train acc: 0.25256666666666666
+epoch: 1, test loss: 1.383200773171016, test acc: 0.26421052631578945
+epoch: 2, train loss: 1.3892573095639547, train acc: 0.26510833333333333
+epoch: 2, test loss: 1.3804954535820906, test acc: 0.2906578947368421
+...
+epoch: 29, train loss: 0.41325390228827796, train acc: 0.8618333333333333
+epoch: 29, test loss: 0.4343584297271837, test acc: 0.8542105263157894
+epoch: 30, train loss: 0.4009424129376809, train acc: 0.8669916666666667
+epoch: 30, test loss: 0.4524909596921516, test acc: 0.8446052631578947
+```
+
+![Alt text](week2/assets/myRNN_2.png)
+
+## LSTM
+
+training time: 1h 7min
+
+```bash
+python3 week2/train.py # comment out train_lstm
+```
+
+```text
+epoch: 1, train loss: 1.3875940755526224, train acc: 0.25738333333333335
+epoch: 1, test loss: 1.3836254312210725, test acc: 0.2719736842105263
+epoch: 2, train loss: 1.3831375082333883, train acc: 0.2748
+epoch: 2, test loss: 1.3794252391622848, test acc: 0.2875
+...
+epoch: 29, train loss: 0.6548505994637808, train acc: 0.758025
+epoch: 29, test loss: 0.6023607878875332, test acc: 0.7852631578947369
+epoch: 30, train loss: 0.6487111969351769, train acc: 0.763125
+epoch: 30, test loss: 0.5960645601779473, test acc: 0.7871052631578948
+```
+
+![Alt text](week2/assets/myLSTM_2.png)
+
+## RNN vs LSTM
+
+LSTM은 cell state와 hidden state 2가지를 가지고 있지만, RNN은 hidden state 하나만 갖고 있습니다.
+그래서 연속된 데이터 형태에서 처음 나온 데이터를 더 잘 기억할 수 있습니다.
+
+### Train data
+
+아래는 훈련 데이터 중 LSTM이 맞고, RNN이 틀린 예시입니다.
+
+```bash
+python3 week2/compare.py
+```
+
+```text
+sentence:  Stocks Fall on Oil, Dow Ends Below 10,000 (Reuters) Reuters - The blue-chip Dow Jones average closed\below 10,000 for the first time in about six weeks on Monday as\a spike in oil prices to nearly  #36;50 a barrel renewed concerns\about corporate profits while analysts cutting recommendations\hurt tech stocks.
+RNN model prediction:  Sci/Tech
+LSTM model prediction:  Business
+Business
+
+sentence:  Diageo says Cheerio to US stake Diageo, the world's biggest spirits company, is selling most of its 20 stake in US food company General Mills to ease its 4.5bn (\$8bn) debt burden.
+RNN model prediction:  Sci/Tech
+LSTM model prediction:  Business
+Business
+
+sentence:  The Gainesville Sun Ron Zook has been relived of his duties as the Florida football head coach effective at the end of the season, Florida athletic director Jeremy Foley confirmed Monday.
+RNN model prediction:  Business
+LSTM model prediction:  Sports
+Sports
+
+sentence:  Cemex buying UK #39;s RMC Group Mexico #39;s Cemex, one of the world #39;s largest makers of concrete will pay \$4.1 billion for British rival RMC Group, the Wall Street Journal reported Monday.
+RNN model prediction:  Sci/Tech
+LSTM model prediction:  Business
+Business
+
+sentence:  Tokyo Stocks Open Higher, Exporters Lead  TOKYO (Reuters) - The Nikkei average opened 0.69 percent  higher on Wednesday as gains on Wall Street eased uncertainty  ahead of the Nov. 2 U.S. presidential election, prompting  buying of Toyota Motor Corp. and other exporters.
+RNN model prediction:  Sci/Tech
+LSTM model prediction:  Business
+Business
+```
+
+### My data
+
+RNN이 두괄식 문장에 약하다는 것을 알 수 있고, 이를 통해 두 모델의 결과가 다른 예시를 구성할 수 있습니다.
+
+```text
+sentence:  ABC company is going to launch a new product. ABC company is a tech company
+RNN model prediction:  Sci/Tech
+LSTM model prediction:  Business
+Business
+sentence:  In football season with many athletes, the Lakers defeated the Warriors.
+RNN model prediction:  Business
+LSTM model prediction:  Sports
+Sports
+sentence:  Research data has been presented in the conference. It is about the performance of athletes which is sponsored by ABC company
+RNN model prediction:  Business
+LSTM model prediction:  Sci/Tech
+Sci/Tech
+```
