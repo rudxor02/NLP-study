@@ -51,8 +51,8 @@ class AGNewsDataset(Dataset):
         self.x_data: list[list[int]] = [
             [word_to_index(vocab, token) for token in tokens] for tokens in tokens_list
         ]
-        self.y_onehot: list[Tensor] = [
-            Tensor([1 if i == y else 0 for i in range(4)]) for y in self.y_data
+        self.onehots: list[Tensor] = [
+            Tensor([1 if i == j else 0 for i in range(4)]) for j in range(4)
         ]
 
     #     self._preprocess()
@@ -73,7 +73,7 @@ class AGNewsDataset(Dataset):
             x_data = [self.pad_idx] * (self.sentence_len - len(x_data)) + x_data
         if len(x_data) > self.sentence_len:
             x_data = x_data[: self.sentence_len]
-        return IntTensor(x_data), self.y_onehot[index]
+        return IntTensor(x_data), self.onehots[self.y_data[index] - 1]
 
     def __len__(self):
         return self.len

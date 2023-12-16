@@ -64,8 +64,6 @@ class LSTMCell(nn.Module):
         self.b_c = nn.Parameter(torch.randn(hidden_size))
 
     def forward(self, x: Tensor, h: Tensor, c: Tensor) -> tuple[Tensor, Tensor]:
-        # x size: (batch, input_size)
-        # h size: (batch, hidden_size)
         f = self.sigmoid(self.w_xf(x) + self.w_hf(h) + self.b_f)
         i = self.sigmoid(self.w_xi(x) + self.w_hi(h) + self.b_i)
         o = self.sigmoid(self.w_xo(x) + self.w_ho(h) + self.b_o)
@@ -122,56 +120,15 @@ class RNN(nn.Module):
                         batch_size, self.hidden_size, device=self._device
                     )
                 if layer_idx == 0:
-                    # shape of x: (batch_size, sequence_size, input_size)
                     cell_x = x[:, sequence_idx]
                 else:
                     cell_x = h_list[sequence_idx]
-                # print(layer_idx, sequence_idx)
 
                 cell_y, cell_h = cell(cell_x, cell_h)
 
                 h_list[sequence_idx] = cell_h
 
-        # shape of call_y: (batch_size, hidden_size)
-        # shape of h_lists: (batch_size, hidden_size)
-
         return cell_y, cell_h
-
-    # def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
-    #     y_list: list[Tensor] = []
-    #     h_lists: list[Tensor] = []
-    #     batch_size = x.shape[0]
-    #     if x.shape[1] != self.sequence_size:
-    #         raise ValueError(
-    #             "input vector should be sequence of vectors, which length is same as cells"
-    #         )
-    #     for layer_idx, layer in enumerate(self.layers):
-    #         h_list: list[Tensor] = []
-    #         for sequence_idx in range(self.sequence_size):
-    #             cell = layer
-    #             if sequence_idx == 0:
-    #                 cell_h = torch.zeros(batch_size, self.hidden_size)
-    #                 if getattr(self, "_device", None) is not None:
-    #                     cell_h = cell_h.to(self._device)
-    #             if layer_idx == 0:
-    #                 # shape of x: (batch_size, sequence_size, input_size)
-    #                 cell_x = x[:, sequence_idx]
-    #             else:
-    #                 cell_x = h_lists[layer_idx - 1][sequence_idx]
-    #             # print(layer_idx, sequence_idx)
-    #             if layer_idx == self.sequence_size - 1:
-    #                 cell_y, cell_h = cell(cell_x, cell_h, out=True)
-    #                 y_list.append(cell_y)
-
-    #             else:
-    #                 _, cell_h = cell(cell_x, cell_h)
-    #             h_list.append(cell_h)
-    #         h_lists.append(torch.stack(h_list, 0))
-    #     # shape of y_list: (sequence_size, batch_size, hidden_size)
-    #     # shape of h_lists: (num_layers, sequence_size, batch_size, hidden_size)
-    #     return torch.stack(y_list, 0).transpose(0, 1), torch.stack(h_lists, 0)[
-    #         :, -1
-    #     ].transpose(0, 1)
 
 
 class LSTM(nn.Module):
@@ -237,18 +194,10 @@ class TextRNN(nn.Module):
         return super().to(device)
 
     def forward(self, x: Tensor) -> Tensor:
-        # print(x.shape)
         x = self.embedding(x)
-        # print(x.shape)
         x, _ = self.rnn(x)
-        # print(x.shape)
-        # x = x[:, -1, :]
-        # print(x.shape)
         x = self.dropout(x)
-        # print(x.shape)
         x = self.linear(x)
-        # print(x.shape)
-        # raise Exception
         return x
 
 
@@ -321,7 +270,7 @@ def train_rnn():
     )
 
     train_losses, test_losses = trainer.run(
-        num_epoch=30, device=device, model_save_path=model_path, verbose=True
+        num_epoch=30, device=device, model_save_path=model_path, verbose=False
     )
 
     plot_loss(train_losses, test_losses)
@@ -378,5 +327,5 @@ def plot_loss(train_losses: list[float], test_losses: list[float]):
 
 
 if __name__ == "__main__":
-    # train_rnn()
-    train_lstm()
+    train_rnn()
+    # train_lstm()
