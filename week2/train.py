@@ -7,7 +7,8 @@ import torch
 from torch import Tensor, cuda, nn, optim
 from torch.utils.data import DataLoader
 
-from libs.trainer import ClassificationTrainer
+
+from libs.classification_trainer import ClassificationTrainer
 from week2.vocab import AGNewsDataset, load_vocab
 
 device = "cuda:0" if cuda.is_available() else "cpu"
