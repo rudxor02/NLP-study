@@ -96,6 +96,7 @@ class WMT14Dataset(Dataset):
         self.seq_length = seq_length
         self.cached_en = [None for _ in range(len(self.en))]
         self.cached_de = [None for _ in range(len(self.de))]
+        self.cached_label = [None for _ in range(len(self.de))]
         self.vocab_size = self.tokenizer.get_vocab_size()
 
         self.unk = self.tokenizer.token_to_id("<unk>")
@@ -113,7 +114,11 @@ class WMT14Dataset(Dataset):
 
     def __getitem__(self, index: int) -> tuple[IntTensor, IntTensor, Tensor]:
         if self.cached_en[index] is not None:
-            return self.cached_en[index], self.cached_de[index]
+            return (
+                self.cached_en[index],
+                self.cached_de[index],
+                self.cached_label[index],
+            )
 
         en_sentence = self.en[index]
         de_sentence = self.de[index]
@@ -130,13 +135,20 @@ class WMT14Dataset(Dataset):
 
         en_sentence = IntTensor(en_sentence)
         de_sentence = IntTensor(de_sentence)
+        label = de_sentence[1:].to(torch.int64)
+        label = torch.cat([label, LongTensor([self.pad])], dim=0)
         self.cached_en[index] = en_sentence
         self.cached_de[index] = de_sentence
+        self.cached_label[index] = label
 
-        label = F.one_hot(de_sentence[1:].to(torch.int64), num_classes=self.vocab_size)
-        label = torch.cat([label, self.pad_one_hot], dim=0)
+        # print(en_sentence, de_sentence, label)
 
-        return en_sentence, de_sentence, label.to(torch.float32)
+        # label = F.one_hot(de_sentence[1:].to(torch.int64), num_classes=self.vocab_size)
+        # label = torch.cat([label, self.pad_one_hot], dim=0)
+
+        # return en_sentence, de_sentence, label.to(torch.float32)
+
+        return en_sentence, de_sentence, label
 
     def __len__(self):
         return len(self.en)

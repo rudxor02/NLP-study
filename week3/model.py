@@ -14,9 +14,11 @@ class PositionalEncoding(RecursiveDeviceModule):
 
         self.pe = torch.zeros(seq_len, d_model)
         for pos in range(seq_len):
-            for i in range(0, d_model, 2):
-                self.pe[pos, i] = sin(pos / (10000 ** ((2 * i) / d_model)))
-                self.pe[pos, i + 1] = cos(pos / (10000 ** ((2 * (i + 1)) / d_model)))
+            for i in range(d_model // 2):
+                self.pe[pos, 2 * i] = sin(pos / (10000 ** ((2 * i) / d_model)))
+                self.pe[pos, 2 * i + 1] = cos(
+                    pos / (10000 ** ((2 * (i + 1)) / d_model))
+                )
 
     def to(self, device: str):
         self.pe = self.pe.to(device)
@@ -172,7 +174,6 @@ class LookAheadMask(RecursiveDeviceModule):
         for i in range(len(triu_indices[0])):
             idx_x, idx_y = triu_indices[:, i]
             x[:, idx_x.item(), idx_y.item()] = 1
-
         return x
 
 
@@ -218,15 +219,15 @@ class Encoder(RecursiveDeviceModule):
             ]
         )
 
-    def forward(self, x: Tensor):
+    def forward(self, x: Tensor, padding_mask: Tensor):
         # x: (batch_size, seq_len)
+        # padding_mask: (batch_size, seq_len, seq_len)
 
-        mask = self.padding_mask(x)  # (batch_size, seq_len, seq_len)
         x = self.embedding_layer(x)  # (batch_size, seq_len, d_model)
         x = self.dropout(self.positional_encoding(x))  # (batch_size, seq_len, d_model)
 
         for encoder_layer in self.encoder_layers:
-            x = encoder_layer(x, mask)
+            x = encoder_layer(x, padding_mask)
 
         return x
 
@@ -304,8 +305,6 @@ class Decoder(RecursiveDeviceModule):
         self.num_layers = num_layers
         self.embedding_layer = embedding_layer
 
-        self.padding_mask = PaddingMask(padding_idx=padding_idx)
-        self.lookahead_mask = LookAheadMask()
         self.positional_encoding = PositionalEncoding(seq_len=seq_len, d_model=d_model)
         self.dropout = nn.Dropout(p_dropout)
 
@@ -323,17 +322,22 @@ class Decoder(RecursiveDeviceModule):
             ]
         )
 
-    def forward(self, x: Tensor, encoder_output: Tensor):
+    def forward(
+        self,
+        x: Tensor,
+        padding_mask: Tensor,
+        lookahead_mask: Tensor,
+        encoder_output: Tensor,
+    ):
         # x: (batch_size, seq_len)
         # encoder_output: (batch_size, seq_len, d_model)
+        # padding_mask, lookahead_mask: (batch_size, seq_len, seq_len)
 
-        mask = self.padding_mask(x)
-        lookahead_mask = self.lookahead_mask(mask)
         x = self.embedding_layer(x)
         x = self.dropout(self.positional_encoding(x))  # (batch_size, seq_len, d_model)
 
         for decoder_layer in self.decoder_layers:
-            x = decoder_layer(x, mask, lookahead_mask, encoder_output)
+            x = decoder_layer(x, padding_mask, lookahead_mask, encoder_output)
 
         return x
 
@@ -361,6 +365,10 @@ class Transformer(RecursiveDeviceModule):
         self.num_layers = num_layers
 
         self.embedding_layer = nn.Embedding(vocab_size, d_model)
+
+        self.padding_mask = PaddingMask(padding_idx=padding_idx)
+        self.lookahead_mask = LookAheadMask()
+        self.positional_encoding = PositionalEncoding(seq_len=seq_len, d_model=d_model)
 
         self.encoder = Encoder(
             padding_idx=padding_idx,
@@ -391,7 +399,13 @@ class Transformer(RecursiveDeviceModule):
     def forward(self, x: Tensor, y: Tensor):
         # x, y: (batch_size, seq_len)
 
-        encoder_output = self.encoder(x)
-        decoder_output = self.decoder(y, encoder_output)
+        lookahead_mask = self.lookahead_mask(
+            self.padding_mask(y)
+        )  # (batch_size, seq_len, seq_len)
+
+        padding_mask = self.padding_mask(x)  # (batch_size, seq_len, seq_len)
+
+        encoder_output = self.encoder(x, padding_mask)
+        decoder_output = self.decoder(y, padding_mask, lookahead_mask, encoder_output)
 
         return self.linear(decoder_output)  # (batch_size, seq_len, vocab_size)

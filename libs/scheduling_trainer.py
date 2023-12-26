@@ -34,8 +34,16 @@ class LRStepSchedulingTrainer(Trainer):
                         y_data.to(device),
                         label.to(device),
                     )
+
                 self.optimizer.zero_grad()
                 pred = self.model(x_data, y_data)
+                pred = torch.transpose(pred, 1, 2)
+                # for i in range(10):
+                #     print(f"x_data: {x_data[i]}")
+                #     print(f"y_data: {y_data[i]}")
+                #     print(f"pred: {torch.transpose(pred, 1, 2)[i].argmax(dim=1)}")
+                #     print(f"label: {label[i]}")
+                # raise Exception
                 loss = self.criterion(pred, label)
                 loss.backward()
                 self.optimizer.step()
@@ -51,5 +59,5 @@ class LRStepSchedulingTrainer(Trainer):
 
             print(f"epoch: {epoch + 1}, train loss: {train_loss}")
             print(f"epoch: {epoch + 1}, train losses: {train_losses}")
-            torch.save(self.model.state_dict(), model_save_path + f".{epoch}")
+            torch.save(self.model.state_dict(), model_save_path + f".v3.{epoch}")
         return train_losses, None
