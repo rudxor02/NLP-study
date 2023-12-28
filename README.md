@@ -223,6 +223,8 @@ python3 week3/train.py
 python3 week3/plot.py
 ```
 
+(맨 처음 loss는 10 정도 합니다)
+
 ![Alt text](week3/assets/loss.png)
 
 ### test
