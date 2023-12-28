@@ -1,10 +1,13 @@
 # NLP-study
 
-# Week 1
+libs 폴더를 두기 때문에 모든 파일은 루트에서 실행합니다.
 
 ```bash
 export PYTHONPATH='.'
 ```
+
+# Week 1
+
 
 ## vocab
 
@@ -190,4 +193,58 @@ sentence:  Research data has been presented in the conference. It is about the p
 RNN model prediction:  Business
 LSTM model prediction:  Sci/Tech
 Sci/Tech
+```
+
+# Week3
+
+transformer를 직접 구현합니다.
+
+## Transformer
+
+모델 구조는 논문 + [인터넷](https://wikidocs.net/31379)을 참고했으며, 학습 파라미터는 논문을 보며 그대로 따라했습니다.
+
+논문에서 batch size는 500이고 warmup step이 4000인데, 메모리 이슈로 250, 8000으로 조정했습니다.
+(warmup step을 배치당 평균 토큰 수의 합을 기준으로 맞췄다길래 2배)
+epoch은 논문에서는 6이지만 마지막에 그냥 10으로 해봤습니다
+
+### train
+
+training time : 6epoch - over 24hr, 10epoch - over 30hr
+
+```bash
+python3 week3/train.py
+```
+
+### loss
+
+```bash
+python3 week3/plot.py
+```
+
+![Alt text](week3/assets/loss.png)
+
+### test
+
+```bash
+python3 week3/train.py
+```
+
+bleu score : 
+
+### translation example
+
+```bash
+python3 week3/test.py # comment out generate_examples()
+```
+
+```text
+=================================
+The quick brown fox jumps over the lazy dog.
+der schnelle bra une fuchs spr ang über den fau len hund .
+=================================
+Every morning, I enjoy a cup of coffee while watching the sunrise.
+jeden morgen genie ße ich eine tasse kaffee , während ich den sonnen auf gang beobach te .
+=================================
+Technology is rapidly advancing, transforming how we live and work.
+die technologie schreitet rasch voran und verändert unsere lebens - und arbeits weise .
 ```

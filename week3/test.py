@@ -90,44 +90,48 @@ def test():
         num_layers=config.num_layers,
     )
 
-    model.load_state_dict(torch.load("week3/data/transformer_model.v2.5"))
+    # model.load_state_dict(torch.load("week3/data/transformer_model.v2.5"))
+    model.load_state_dict(torch.load("week3/data/transformer_model.v3.9"))
 
     total_bleu = 0.0
 
-    for i, (en, de) in enumerate(dataloader):
+    for _i, (en, de) in enumerate(dataloader):
         en = list(en)
         de = list(de)
         outputs = [predict(model, tokenizer, en_, seq_len=config.seq_len) for en_ in en]
-        for en_, de_, output_ in zip(en, de, outputs):
-            print(f"en: {en_}")
-            print(f"de: {de_}")
-            print(f"output: {output_}")
-            print("%.2f" % bleu.sentence_bleu([de_], output_))
-        raise Exception
-        bleu_score = 0.0
-        for hypothesis, reference in zip(outputs, de):
-            # print(f"hypothesis: {' '.join(hypothesis)}")
-            hypothesis = tokenizer.encode(hypothesis).tokens
-            reference = tokenizer.encode(reference).tokens
-            print(f"hypothesis: {' '.join(hypothesis)}")
-            print(f"reference: {' '.join(reference)}")
-            bleu_score += bleu.sentence_bleu([reference], hypothesis)
-        total_bleu += bleu_score
+        for _en_, de_, output_ in zip(en, de, outputs):
+            total_bleu += bleu.sentence_bleu([de_], output_)
 
     print(f"BLEU: {total_bleu / len(dataloader)}")
 
 
-def a():
-    print(
-        bleu.sentence_bleu(
-            [
-                "Kürzlich stellte das Unternehmen eine Anzeige vor , die der Beginn eines neuen Anzeigenkriegs sind könnte und Geldgebern ein Bild zeigte , in dem drei Personen zusammengequetscht in einem Restaurant sitzen , und dazu der Titel : „ Würden Sie das akzeptieren ? “"
-            ],
-            "das ist der fall .",
-        )
+def generate_examples():
+    en = [
+        "The quick brown fox jumps over the lazy dog.",
+        "Every morning, I enjoy a cup of coffee while watching the sunrise.",
+        "Technology is rapidly advancing, transforming how we live and work.",
+    ]
+
+    tokenizer = load_tokenizer()
+    padding_idx = tokenizer.token_to_id("<pad>")
+    model = Transformer(
+        padding_idx=padding_idx,
+        vocab_size=tokenizer.get_vocab_size(),
+        seq_len=config.seq_len,
+        d_model=config.d_model,
+        num_heads=config.num_heads,
+        d_ff=config.d_ff,
+        p_dropout=config.p_dropout,
+        num_layers=config.num_layers,
     )
+    model.load_state_dict(torch.load("week3/data/transformer_model.v3.9"))
+
+    for _en in en:
+        print("=================================")
+        print(_en)
+        print(predict(model, tokenizer, _en, seq_len=config.seq_len))
 
 
 if __name__ == "__main__":
     test()
-    # a()
+    # generate_examples()
