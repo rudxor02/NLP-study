@@ -230,7 +230,7 @@ python3 week3/plot.py
 ### test
 
 ```bash
-python3 week3/train.py
+python3 week3/test.py
 ```
 
 bleu score : 48.7
