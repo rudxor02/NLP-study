@@ -141,13 +141,6 @@ class WMT14Dataset(Dataset):
         self.cached_de[index] = de_sentence
         self.cached_label[index] = label
 
-        # print(en_sentence, de_sentence, label)
-
-        # label = F.one_hot(de_sentence[1:].to(torch.int64), num_classes=self.vocab_size)
-        # label = torch.cat([label, self.pad_one_hot], dim=0)
-
-        # return en_sentence, de_sentence, label.to(torch.float32)
-
         return en_sentence, de_sentence, label
 
     def __len__(self):
@@ -156,9 +149,6 @@ class WMT14Dataset(Dataset):
 
 if __name__ == "__main__":
     train_en, train_de = load_data(train=True)
-    # analyze(train_en)
-    # analyze(train_de)
     dataset = WMT14Dataset(load_tokenizer(), train_en, train_de)
     print(dataset[0])
     print(dataset[100])
-    pass

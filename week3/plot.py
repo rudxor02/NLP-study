@@ -2,7 +2,7 @@ from libs.plot import plot_values
 
 
 def plot():
-    # from train.py... believe me
+    # from train.py...
     train_loss = [
         4.434931715133874,
         3.464883699623043,

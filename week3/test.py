@@ -34,21 +34,13 @@ def predict(model: nn.Module, tokenizer: Tokenizer, sentence: str, seq_len: int)
         ]
     )
 
-    # print("*********************************")
     for i in range(seq_len):
         with torch.no_grad():
             outputs = model(encoder_input, decoder_input)
             predicted_tokens = outputs[0].argmax(dim=-1)
             predicted_token = predicted_tokens[i].item()
 
-            # print(predicted_tokens)
-            # print(predicted_token)
-            # print(decoder_input)
-            # print("=================================")
-
             if predicted_token == tokenizer.token_to_id("<eos>"):
-                # if i > 0:
-                #     decoder_input[:, 1:i] = predicted_tokens[: i - 1]
                 break
             decoder_input[:, i + 1] = predicted_token
 
