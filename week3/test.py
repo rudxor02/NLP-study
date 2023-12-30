@@ -90,7 +90,6 @@ def test():
         num_layers=config.num_layers,
     )
 
-    # model.load_state_dict(torch.load("week3/data/transformer_model.v2.5"))
     model.load_state_dict(torch.load("week3/data/transformer_model.v3.9"))
 
     total_bleu = 0.0
@@ -101,12 +100,11 @@ def test():
         de = list(de)
         for en_, de_ in zip(en, de):
             output = predict(model, tokenizer, en_, seq_len=config.seq_len)
-            # print(f"score: {bleu.sentence_bleu([de_], output)}\n{en_}\n{output}")
             total_bleu += bleu.sentence_bleu([de_], output)
             count += 1
         print(f"BLEU: {total_bleu / count} {i} / {len(dataloader)}")
 
-    print(f"BLEU: {total_bleu / (len(dataloader) * 32)}")
+    print(f"BLEU: {total_bleu / count}")
 
 
 def generate_examples():
