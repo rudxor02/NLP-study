@@ -233,7 +233,7 @@ python3 week3/plot.py
 python3 week3/train.py
 ```
 
-bleu score : 
+bleu score : 48.7
 
 ### translation example
 

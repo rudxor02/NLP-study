@@ -94,15 +94,19 @@ def test():
     model.load_state_dict(torch.load("week3/data/transformer_model.v3.9"))
 
     total_bleu = 0.0
+    count = 0
 
-    for _i, (en, de) in enumerate(dataloader):
+    for i, (en, de) in enumerate(dataloader):
         en = list(en)
         de = list(de)
-        outputs = [predict(model, tokenizer, en_, seq_len=config.seq_len) for en_ in en]
-        for _en_, de_, output_ in zip(en, de, outputs):
-            total_bleu += bleu.sentence_bleu([de_], output_)
+        for en_, de_ in zip(en, de):
+            output = predict(model, tokenizer, en_, seq_len=config.seq_len)
+            # print(f"score: {bleu.sentence_bleu([de_], output)}\n{en_}\n{output}")
+            total_bleu += bleu.sentence_bleu([de_], output)
+            count += 1
+        print(f"BLEU: {total_bleu / count} {i} / {len(dataloader)}")
 
-    print(f"BLEU: {total_bleu / len(dataloader)}")
+    print(f"BLEU: {total_bleu / (len(dataloader) * 32)}")
 
 
 def generate_examples():
