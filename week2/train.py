@@ -1,13 +1,11 @@
-import time
 from typing import Optional
 
-import pandas as pd
-import plotly.express as px
 import torch
 from torch import Tensor, cuda, nn, optim
 from torch.utils.data import DataLoader
 
-from libs.trainer import ClassificationTrainer
+from libs.classification_trainer import ClassificationTrainer
+from libs.plot import plot_values
 from week2.vocab import AGNewsDataset, load_vocab
 
 device = "cuda:0" if cuda.is_available() else "cpu"
@@ -273,7 +271,7 @@ def train_rnn():
         num_epoch=30, device=device, model_save_path=model_path, verbose=False
     )
 
-    plot_loss(train_losses, test_losses)
+    plot_values(train=train_losses, test=test_losses)
 
 
 def train_lstm():
@@ -317,13 +315,7 @@ def train_lstm():
         num_epoch=30, device=device, model_save_path=model_path, verbose=False
     )
 
-    plot_loss(train_losses, test_losses)
-
-
-def plot_loss(train_losses: list[float], test_losses: list[float]):
-    df = pd.DataFrame({"train": train_losses, "test": test_losses})
-    fig = px.line(df, title="Loss")
-    fig.show()
+    plot_values(train=train_losses, test=test_losses)
 
 
 if __name__ == "__main__":
