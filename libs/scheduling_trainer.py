@@ -14,6 +14,7 @@ class LRStepSchedulingTrainer(Trainer):
         num_epoch: int,
         device: str,
         model_save_path: str,
+        model_version: str = "v1",
         model_load_path: Optional[str] = None,
         verbose: bool = False,
     ) -> tuple[list[float], Optional[list[float]]]:
@@ -27,23 +28,13 @@ class LRStepSchedulingTrainer(Trainer):
         for epoch in range(num_epoch):
             self.model.train()
             train_loss = 0.0
-            for i, (x_data, y_data, label) in enumerate(self.train_dataloader):
-                if x_data.device != device:
-                    x_data, y_data, label = (
-                        x_data.to(device),
-                        y_data.to(device),
-                        label.to(device),
-                    )
-
+            for i, (*data, label) in enumerate(self.train_dataloader):
+                if data[0].device != device:
+                    data = [d.to(device) for d in data]
+                    label = label.to(device)
                 self.optimizer.zero_grad()
-                pred = self.model(x_data, y_data)
+                pred = self.model(*data)
                 pred = torch.transpose(pred, 1, 2)
-                # for i in range(10):
-                #     print(f"x_data: {x_data[i]}")
-                #     print(f"y_data: {y_data[i]}")
-                #     print(f"pred: {torch.transpose(pred, 1, 2)[i].argmax(dim=1)}")
-                #     print(f"label: {label[i]}")
-                # raise Exception
                 loss = self.criterion(pred, label)
                 loss.backward()
                 self.optimizer.step()
@@ -59,5 +50,7 @@ class LRStepSchedulingTrainer(Trainer):
 
             print(f"epoch: {epoch + 1}, train loss: {train_loss}")
             print(f"epoch: {epoch + 1}, train losses: {train_losses}")
-            torch.save(self.model.state_dict(), model_save_path + f".v3.{epoch}")
+            torch.save(
+                self.model.state_dict(), model_save_path + f".{model_version}.{epoch}"
+            )
         return train_losses, None
