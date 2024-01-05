@@ -74,8 +74,10 @@ def train():
     padding_idx = dataset.pad
 
     model = Transformer(
-        padding_idx=padding_idx,
-        vocab_size=tokenizer.get_vocab_size(),
+        # padding_idx=padding_idx,
+        # vocab_size=tokenizer.get_vocab_size(),
+        padding_idx=1,
+        vocab_size=47000,
         seq_len=config.seq_len,
         d_model=config.d_model,
         num_heads=config.num_heads,
@@ -83,6 +85,9 @@ def train():
         p_dropout=config.p_dropout,
         num_layers=config.num_layers,
     )
+    # number of parameters: 92.31M
+    # model size: 352.148MB
+    print(model)
 
     criterion = nn.CrossEntropyLoss(
         label_smoothing=config.eps_label_smoothing, ignore_index=padding_idx
@@ -101,17 +106,6 @@ def train():
         optimizer=optimizer,
         lr_scheduler=scheduler,
     )
-
-    print(model)
-    param_size = 0
-    for param in model.parameters():
-        param_size += param.nelement() * param.element_size()
-    buffer_size = 0
-    for buffer in model.buffers():
-        buffer_size += buffer.nelement() * buffer.element_size()
-
-    size_all_mb = (param_size + buffer_size) / 1024**2
-    print("model size: {:.3f}MB".format(size_all_mb))
 
     trainer.run(
         num_epoch=config.num_epochs,
