@@ -252,3 +252,50 @@ jeden morgen genie ße ich eine tasse kaffee , während ich den sonnen auf gang 
 Technology is rapidly advancing, transforming how we live and work.
 die technologie schreitet rasch voran und verändert unsere lebens - und arbeits weise .
 ```
+
+# Week4
+
+gpt-2 small을 직접 구현합니다.
+
+## GPT-2
+
+모델 구조는 아래 링크들을 참고했습니다.
+
+1. [gpt1 논문](https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf)
+2. [gpt2 논문](https://d4mucfpksywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
+3. [minGPT 코드](https://github.com/karpathy/minGPT)
+4. [gpt2 모델 설명](https://jalammar.github.io/illustrated-gpt2/)
+
+메모리 이슈로 batch size를 64로 많이 줄였고, learning rate는 간단하게 고정했습니다
+
+### train
+
+```bash
+python3 week4/train.py
+```
+
+### loss
+
+```bash
+python3 week4/plot.py
+```
+
+![Alt text](week4/assets/loss.png)
+
+### test
+
+```bash
+python3 week4/test.py
+```
+
+ppl: 
+
+### generate
+
+```bash
+python3 week4/generate.py
+```
+
+```text
+x
+```
