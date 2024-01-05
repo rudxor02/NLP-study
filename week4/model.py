@@ -1,4 +1,5 @@
 from math import sqrt
+from typing import Generator
 
 import torch
 from torch import Tensor, nn
@@ -161,6 +162,24 @@ class GPT(StrNumOfParamsModule, RecursiveDeviceModule):
 
         return self.fc_head(x)  # (batch_size, seq_len, vocab_size)
 
+    def _generate_next_token(
+        self, x: Tensor, temperature: float, top_k: int | None
+    ) -> Tensor:
+        # x: (batch_size, seq_len)
+
+        logits = self.forward(x)  # (batch_size, seq_len, vocab_size)
+        logits = logits[:, -1, :] / temperature  # (batch_size, vocab_size)
+
+        if top_k is not None:
+            logits_topk, _indices = logits.topk(top_k, dim=-1)
+            logits[logits < torch.min(logits_topk)] = -1e9
+            probs = torch.softmax(logits, dim=-1)
+
+            return torch.multinomial(probs, num_samples=1)  # (batch_size, 1)
+
+        next_token = torch.argmax(logits, dim=-1)
+        return next_token.unsqueeze(-1)
+
     @torch.no_grad()
     def generate(
         self,
@@ -168,8 +187,13 @@ class GPT(StrNumOfParamsModule, RecursiveDeviceModule):
         max_iter: int,
         temperature: float = 1.0,
         top_k: int | None = None,
-    ):
-        # x: (batch_size, seq_len)
+    ) -> Tensor:
+        # x: (1, seq_len)
+        if x.size(0) != 1:
+            raise ValueError("batch size should be 1")
+
+        if str(x.device) != self._device:
+            x = x.to(self._device)
 
         for _ in range(max_iter):
             x = (
@@ -177,21 +201,35 @@ class GPT(StrNumOfParamsModule, RecursiveDeviceModule):
                 if x.size(1) <= self.config.block_size
                 else x[:, -self.config.block_size :]
             )
-            logits = self.forward(x)  # (batch_size, seq_len, vocab_size)
-            logits = logits[:, -1, :] / temperature  # (batch_size, vocab_size)
-
-            if top_k is not None:
-                logits = logits.topk(top_k, dim=-1)[0]
-                logits[logits < torch.max(logits)] = -1e9
-
-                probs = torch.softmax(logits, dim=-1)
-
-                next_token = torch.multinomial(probs, num_samples=1)  # (batch_size, 1)
-            else:
-                next_token = torch.argmax(logits, dim=-1)
+            next_token = self._generate_next_token(x, temperature, top_k)
             x = torch.cat([x, next_token], dim=-1)
 
-        return x[:, self.config.block_size :]
+        return x[:, -max_iter:]
+
+    @torch.no_grad()
+    def stream(
+        self,
+        x: Tensor,
+        max_iter: int,
+        temperature: float = 1.0,
+        top_k: int | None = None,
+    ) -> Generator[Tensor, None, None]:
+        # x: (1, seq_len)
+        if x.size(0) != 1:
+            raise ValueError("batch size should be 1")
+
+        if str(x.device) != self._device:
+            x = x.to(self._device)
+
+        for _ in range(max_iter):
+            x = (
+                x
+                if x.size(1) <= self.config.block_size
+                else x[:, -self.config.block_size :]
+            )
+            next_token = self._generate_next_token(x, temperature, top_k)
+            yield next_token
+            x = torch.cat([x, next_token], dim=-1)
 
 
 if __name__ == "__main__":
