@@ -7,7 +7,7 @@ from libs.trainer import Trainer
 
 
 class LRStepSchedulingTrainer(Trainer):
-    lr_scheduler: LRScheduler
+    lr_scheduler: LRScheduler | None = None
 
     def run(
         self,
@@ -28,7 +28,7 @@ class LRStepSchedulingTrainer(Trainer):
         for epoch in range(num_epoch):
             self.model.train()
             train_loss = 0.0
-            for i, (*data, label) in enumerate(self.train_dataloader):
+            for step, (*data, label) in enumerate(self.train_dataloader):
                 if data[0].device != device:
                     data = [d.to(device) for d in data]
                     label = label.to(device)
@@ -40,17 +40,23 @@ class LRStepSchedulingTrainer(Trainer):
                 self.optimizer.step()
                 batch_loss = loss.item()
                 train_loss += batch_loss
-                if verbose and i % 100 == 0:
+                if verbose and step % 100 == 0:
                     print(
-                        f"epoch: {epoch + 1} loss: {batch_loss} step: {i} / {len(self.train_dataloader)}"
+                        f"epoch: {epoch + 1} loss: {batch_loss} step: {step} / {len(self.train_dataloader)}"
                     )
-                self.lr_scheduler.step()
+                    torch.save(
+                        self.model.state_dict(),
+                        model_save_path + f".{model_version}.epoch_{epoch}.step_{step}",
+                    )
+                if self.lr_scheduler is not None:
+                    self.lr_scheduler.step()
             train_loss /= len(self.train_dataloader)
             train_losses.append(train_loss)
 
             print(f"epoch: {epoch + 1}, train loss: {train_loss}")
             print(f"epoch: {epoch + 1}, train losses: {train_losses}")
             torch.save(
-                self.model.state_dict(), model_save_path + f".{model_version}.{epoch}"
+                self.model.state_dict(),
+                model_save_path + f".{model_version}.epoch_{epoch}.step_0",
             )
         return train_losses, None
