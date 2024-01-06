@@ -1,5 +1,5 @@
 import torch
-from torch import IntTensor, nn
+from torch import IntTensor
 
 from week4.config import config
 from week4.model import GPT
@@ -8,7 +8,7 @@ from week4.vocab import load_tokenizer
 
 def load_model():
     model = GPT(config)
-    model.load_state_dict(torch.load("week4/data/model.v1.epoch_0.step_1400"))
+    model.load_state_dict(torch.load("week4/data/model.v1.2.epoch_0.step_7100"))
     model.to(config.device)
     model.eval()
     return model

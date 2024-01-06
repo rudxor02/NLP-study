@@ -5,7 +5,6 @@ from random import randint
 from datasets import load_dataset
 from tokenizers import Tokenizer
 from torch import IntTensor, LongTensor, nn
-from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
@@ -90,16 +89,7 @@ def train():
 
     criterion = nn.CrossEntropyLoss(ignore_index=config.padding_idx)
 
-    optimizer = Adam(
-        model.parameters(), betas=(config.adam_beta1, config.adam_beta2), lr=config.lr
-    )
-
-    scheduler = GPTScheduler(
-        optimizer,
-        T_max=config.cosine_t_max,
-        warmup_steps=config.warmup_steps,
-        verbose=True,
-    )
+    optimizer = model.get_optimizer()
 
     trainer = LRStepSchedulingTrainer(
         model=model,
@@ -107,14 +97,13 @@ def train():
         batch_size=config.batch_size,
         criterion=criterion,
         optimizer=optimizer,
-        # lr_scheduler=scheduler,
     )
 
     trainer.run(
         num_epoch=config.n_epochs,
         device=config.device,
         model_save_path=os.path.join(DATA_DIR_PATH, "model"),
-        model_load_path="week4/data/model.v1.epoch_0.step_1400",
+        loss_save_path=os.path.join(DATA_DIR_PATH, "loss"),
         model_version="v2",
         verbose=True,
     )

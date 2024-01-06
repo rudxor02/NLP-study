@@ -1,3 +1,4 @@
+import math
 from math import sqrt
 from typing import Generator
 
@@ -70,7 +71,7 @@ class MultiHeadAttention(RecursiveDeviceModule):
         )
 
         self.residual_dropout = nn.Dropout(p=prob_residual_dropout)
-        self.w_o = nn.Linear(d_model, d_model)
+        self.proj = nn.Linear(d_model, d_model)
 
     def forward(self, x: Tensor, mask: Tensor):
         # x, encoder_output: (batch_size, seq_len, d_model)
@@ -84,7 +85,7 @@ class MultiHeadAttention(RecursiveDeviceModule):
         attention_outputs = torch.cat(attention_outputs, dim=-1)
 
         return self.residual_dropout(
-            self.w_o(attention_outputs)
+            self.proj(attention_outputs)
         )  # (batch_size, seq_len, d_model)
 
 
@@ -100,9 +101,10 @@ class DecoderLayer(RecursiveDeviceModule):
             prob_residual_dropout=config.prob_residual_dropout,
         )
 
-        self.layer_norm = nn.LayerNorm(config.embedding_dim)
+        self.layer_norm_1 = nn.LayerNorm(config.embedding_dim)
+        self.layer_norm_2 = nn.LayerNorm(config.embedding_dim)
         self.fc_1 = nn.Linear(config.embedding_dim, 4 * config.embedding_dim)
-        self.fc_2 = nn.Linear(4 * config.embedding_dim, config.embedding_dim)
+        self.proj = nn.Linear(4 * config.embedding_dim, config.embedding_dim)
         self.gelu = nn.GELU()
         self.dropout = nn.Dropout(config.prob_residual_dropout)
 
@@ -110,8 +112,8 @@ class DecoderLayer(RecursiveDeviceModule):
         # x: (batch_size, seq_len, d_model)
         # mask: (batch_size, seq_len, seq_len)
 
-        x = x + self.attention(self.layer_norm(x), mask)
-        x = x + self.dropout(self.fc_2(self.gelu(self.fc_1(self.layer_norm(x)))))
+        x = x + self.attention(self.layer_norm_1(x), mask)
+        x = x + self.dropout(self.proj(self.gelu(self.fc_1(self.layer_norm_2(x)))))
         return x
 
 
@@ -131,10 +133,69 @@ class GPT(StrNumOfParamsModule, RecursiveDeviceModule):
             [DecoderLayer(config) for _ in range(config.n_layer)]
         )
 
+        self.layer_norm = nn.LayerNorm(config.embedding_dim)
         self.fc_head = nn.Linear(config.embedding_dim, config.vocab_size, bias=False)
 
         self.padding_mask = PaddingMask(config.padding_idx)
         self.look_ahead_mask = LookAheadMask()
+
+        self.apply(self._init_weights)
+        for pn, p in self.named_parameters():
+            if pn.endswith("proj.weight"):
+                torch.nn.init.normal_(
+                    p,
+                    mean=0.0,
+                    std=self.config.weight_std / math.sqrt(2 * config.n_layer),
+                )
+
+    def _init_weights(self, module: nn.Module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config.weight_std)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config.weight_std)
+        elif isinstance(module, nn.LayerNorm):
+            torch.nn.init.zeros_(module.bias)
+            torch.nn.init.ones_(module.weight)
+
+    def get_optimizer(self):
+        # from https://github.com/karpathy/minGPT/blob/37baab71b9abea1b76ab957409a1cc2fbfba8a26/mingpt/model.py#L215
+        decay_set: set[str] = set()
+        no_decay_set: set[str] = set()
+        whitelist_weight_modules = (torch.nn.Linear,)
+        blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
+        for mn, m in self.named_modules():
+            for pn, _p in m.named_parameters():
+                fpn = ".".join([mn, pn]) if mn else pn
+                if pn.endswith("bias"):
+                    no_decay_set.add(fpn)
+                elif pn.endswith("weight") and isinstance(m, whitelist_weight_modules):
+                    decay_set.add(fpn)
+                elif pn.endswith("weight") and isinstance(m, blacklist_weight_modules):
+                    no_decay_set.add(fpn)
+
+        param_dict = {pn: p for pn, p in self.named_parameters()}
+        inter_params = decay_set & no_decay_set
+        union_params = decay_set | no_decay_set
+        assert len(inter_params) == 0
+        assert len(param_dict.keys() - union_params) == 0
+        optim_groups = [
+            {
+                "params": [param_dict[pn] for pn in sorted(list(decay_set))],
+                "weight_decay": self.config.weight_decay,
+            },
+            {
+                "params": [param_dict[pn] for pn in sorted(list(no_decay_set))],
+                "weight_decay": 0.0,
+            },
+        ]
+        optimizer = torch.optim.AdamW(
+            optim_groups,
+            betas=(self.config.adam_beta1, self.config.adam_beta2),
+            lr=self.config.lr,
+        )
+        return optimizer
 
     def forward(self, x: Tensor):
         """
@@ -147,7 +208,6 @@ class GPT(StrNumOfParamsModule, RecursiveDeviceModule):
         )  # (batch_size, seq_len, seq_len)
 
         embeddings = self.word_embedding(x)  # (batch_size, seq_len, d_model)
-        embeddings = self.embedding_dropout(embeddings)
 
         positions = torch.arange(embeddings.size(1), device=self._device).expand(
             embeddings.size(0), embeddings.size(1)
@@ -155,11 +215,13 @@ class GPT(StrNumOfParamsModule, RecursiveDeviceModule):
 
         positions = self.position_embedding(positions)  # (batch_size, seq_len, d_model)
 
-        x = embeddings + positions  # (batch_size, seq_len, d_model)
+        x = self.embedding_dropout(
+            embeddings + positions
+        )  # (batch_size, seq_len, d_model)
 
         for decoder_layer in self.decoder_layers:
             x = decoder_layer(x, mask)
-
+        x = self.layer_norm(x)
         return self.fc_head(x)  # (batch_size, seq_len, vocab_size)
 
     def _generate_next_token(

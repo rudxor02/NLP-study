@@ -3,7 +3,8 @@ from torch import cuda
 
 
 class GPTConfig(BaseModel):
-    device: str = "cuda" if cuda.is_available() else "cpu"
+    # device: str = "cuda" if cuda.is_available() else "cpu"
+    device: str = "cuda:1" if cuda.is_available() else "cpu"
     n_epochs: int = 3
     vocab_size: int = 50257
     block_size: int = 512
@@ -11,6 +12,7 @@ class GPTConfig(BaseModel):
     batch_size: int = 64
     n_layer: int = 12
     n_head: int = 12
+    weight_std: float = 0.02
     embedding_dim: int = 768
     prob_attention_dropout: float = 0.1
     prob_residual_dropout: float = 0.1
@@ -22,6 +24,7 @@ class GPTConfig(BaseModel):
     adam_beta2: float = 0.95
     lr: float = 2.5e-4
     padding_idx: int = 1
+    weight_decay: float = 0.01
 
 
 config = GPTConfig()

@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 import torch
@@ -15,10 +16,12 @@ class LRStepSchedulingTrainer(Trainer):
         device: str,
         model_save_path: str,
         model_version: str = "v1",
+        loss_save_path: Optional[str] = None,
         model_load_path: Optional[str] = None,
         verbose: bool = False,
     ) -> tuple[list[float], Optional[list[float]]]:
         train_losses: list[float] = []
+        step_train_losses: list[float] = []
 
         self.model.to(device)
 
@@ -48,6 +51,10 @@ class LRStepSchedulingTrainer(Trainer):
                         self.model.state_dict(),
                         model_save_path + f".{model_version}.epoch_{epoch}.step_{step}",
                     )
+                    if loss_save_path is not None:
+                        step_train_losses.append(batch_loss)
+                        with open(loss_save_path + f".{model_version}.json", "w") as f:
+                            f.write(json.dumps(step_train_losses))
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()
             train_loss /= len(self.train_dataloader)
