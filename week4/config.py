@@ -4,7 +4,7 @@ from torch import cuda
 
 class GPTConfig(BaseModel):
     # device: str = "cuda" if cuda.is_available() else "cpu"
-    device: str = "cuda:1" if cuda.is_available() else "cpu"
+    device: str = "cuda:0" if cuda.is_available() else "cpu"
     n_epochs: int = 3
     vocab_size: int = 50257
     block_size: int = 512

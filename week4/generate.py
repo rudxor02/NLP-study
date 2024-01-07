@@ -8,7 +8,7 @@ from week4.vocab import load_tokenizer
 
 def load_model():
     model = GPT(config)
-    model.load_state_dict(torch.load("week4/data/model.v1.2.epoch_0.step_7100"))
+    model.load_state_dict(torch.load("week4/data/model.v2.epoch_0.step_19600"))
     model.to(config.device)
     model.eval()
     return model
@@ -38,5 +38,11 @@ def stream(model: GPT, prompt: str, max_iter: int = 100):
 
 if __name__ == "__main__":
     model = load_model()
-    # generate(model, "My name is Teven and I am", max_iter=50)
-    stream(model, "My name is Teven and I am", max_iter=300)
+    print("<prompt> My name is Teven and I am\n<generated> ")
+    stream(model, "My name is Teven and I am", max_iter=100)
+    print("\n====================\n")
+    print("<prompt> I am a student at KAIST\n<generated> ")
+    stream(model, "I am a student at KAIST", max_iter=100)
+    print("\n====================\n")
+    print("<prompt> I like to eat\n<generated> ")
+    stream(model, "I like to eat", max_iter=100)

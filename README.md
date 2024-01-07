@@ -270,6 +270,8 @@ gpt-2 small을 직접 구현합니다.
 
 ### train
 
+training time: over 30hr
+
 ```bash
 python3 week4/train.py
 ```
@@ -288,7 +290,10 @@ python3 week4/plot.py
 python3 week4/test.py
 ```
 
-ppl: 
+```text
+cross entropy: 4.801433165868123
+perplexity: 121.6846869504162
+```
 
 ### generate
 
@@ -297,5 +302,21 @@ python3 week4/generate.py
 ```
 
 ```text
-x
+<prompt> My name is Teven and I am
+<generated> 
+ not an adult person and they would have never made my name.
+
+there are many reasons why i think we should take the name teven. we are always looking to avoid this term in your everyday life, and now i have decided to do it all. for a moment, teven is the name of its kind. after being mentioned in our own article "my name", i will give you that a second name teven is probably, the name is teven? i have done the
+====================
+
+<prompt> I am a student at KAIST
+<generated> 
+ (i know, i can’m not a student, it is an example of student id card with the point “u”). i have several different views that i am a student at while i am a student at the same location. i am very familiar with the idea of trying to understand what is happening in the world, and i am working on a blog writing for the upcoming semester at kaist (no, i wish i would just like to be part of the post). but it’d
+====================
+
+<prompt> I like to eat
+<generated> 
+. the first thing the most important thing i like about the game is the lack of detail in detail. the core game is about a little light in photoshop. it’s the way you see what the shadows make—and then you are ready to see, what the color of the light is. it’s about the light you want, where there’s an image you can play or feel, what the colour you want, or what the lighting is.
+
+for me, this is%
 ```

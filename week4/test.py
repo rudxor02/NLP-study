@@ -43,7 +43,7 @@ def test():
     )
 
     model = GPT(config)
-    model.load_state_dict(torch.load("week4/data/model.v1.2.epoch_0.step_8000"))
+    model.load_state_dict(torch.load("week4/data/model.v2.epoch_0.step_19500"))
 
     criterion = nn.CrossEntropyLoss(ignore_index=config.padding_idx)
 
