@@ -304,19 +304,25 @@ python3 week4/generate.py
 ```text
 <prompt> My name is Teven and I am
 <generated> 
- not an adult person and they would have never made my name.
+ glad to be in my teens. i got an invitation to do my two cents a day. this is for my niece, my sister, and that little girl. there wasn't even a chance they would not want her anyway. i was quite upset. i am very sorry because i'm not my father.
 
-there are many reasons why i think we should take the name teven. we are always looking to avoid this term in your everyday life, and now i have decided to do it all. for a moment, teven is the name of its kind. after being mentioned in our own article "my name", i will give you that a second name teven is probably, the name is teven? i have done the
+after the event was over i was in my youth but i was also trying to get out of bed and sleep in bed and i got out to see my sister at the end and
 ====================
 
 <prompt> I am a student at KAIST
 <generated> 
- (i know, i can’m not a student, it is an example of student id card with the point “u”). i have several different views that i am a student at while i am a student at the same location. i am very familiar with the idea of trying to understand what is happening in the world, and i am working on a blog writing for the upcoming semester at kaist (no, i wish i would just like to be part of the post). but it’d
+u university in the united states. the i do not have a masters degree. i do not live in new york but if i have an education i may have to stay here. i am currently studying with a phd candidate and i would not do my research.
+
+my research and skills have grown in recent years and i have grown accustomed to working on my education.
+
+in my research i have grown in the same area. you have to have your education in order to be successful and productive
 ====================
 
 <prompt> I like to eat
 <generated> 
-. the first thing the most important thing i like about the game is the lack of detail in detail. the core game is about a little light in photoshop. it’s the way you see what the shadows make—and then you are ready to see, what the color of the light is. it’s about the light you want, where there’s an image you can play or feel, what the colour you want, or what the lighting is.
+ it and this is the biggest moment the internet has ever seen:
 
-for me, this is%
+a lot of our favorite websites, videos, websites and everything else is going on. it is being done by the whole of the adult web. they’re doing everything they can to stop people doing things that are not just important to the children or their lives or the lives of those in their communities.
+
+the idea isn’t even an attempt to stop people doing things like this and doing it by the whole of%
 ```
