@@ -112,7 +112,7 @@ class WMT14Dataset(Dataset):
             LongTensor([self.pad]), num_classes=self.vocab_size
         )
 
-    def __getitem__(self, index: int) -> tuple[IntTensor, IntTensor, Tensor]:
+    def __getitem__(self, index: int) -> tuple[IntTensor, IntTensor, LongTensor]:
         if self.cached_en[index] is not None:
             return (
                 self.cached_en[index],

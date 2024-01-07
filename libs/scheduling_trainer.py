@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 import torch
@@ -7,17 +8,20 @@ from libs.trainer import Trainer
 
 
 class LRStepSchedulingTrainer(Trainer):
-    lr_scheduler: LRScheduler
+    lr_scheduler: LRScheduler | None = None
 
     def run(
         self,
         num_epoch: int,
         device: str,
         model_save_path: str,
+        model_version: str = "v1",
+        loss_save_path: Optional[str] = None,
         model_load_path: Optional[str] = None,
         verbose: bool = False,
     ) -> tuple[list[float], Optional[list[float]]]:
         train_losses: list[float] = []
+        step_train_losses: list[float] = []
 
         self.model.to(device)
 
@@ -27,37 +31,39 @@ class LRStepSchedulingTrainer(Trainer):
         for epoch in range(num_epoch):
             self.model.train()
             train_loss = 0.0
-            for i, (x_data, y_data, label) in enumerate(self.train_dataloader):
-                if x_data.device != device:
-                    x_data, y_data, label = (
-                        x_data.to(device),
-                        y_data.to(device),
-                        label.to(device),
-                    )
-
+            for step, (*data, label) in enumerate(self.train_dataloader):
+                if data[0].device != device:
+                    data = [d.to(device) for d in data]
+                    label = label.to(device)
                 self.optimizer.zero_grad()
-                pred = self.model(x_data, y_data)
+                pred = self.model(*data)
                 pred = torch.transpose(pred, 1, 2)
-                # for i in range(10):
-                #     print(f"x_data: {x_data[i]}")
-                #     print(f"y_data: {y_data[i]}")
-                #     print(f"pred: {torch.transpose(pred, 1, 2)[i].argmax(dim=1)}")
-                #     print(f"label: {label[i]}")
-                # raise Exception
                 loss = self.criterion(pred, label)
                 loss.backward()
                 self.optimizer.step()
                 batch_loss = loss.item()
                 train_loss += batch_loss
-                if verbose and i % 100 == 0:
+                if verbose and step % 100 == 0:
                     print(
-                        f"epoch: {epoch + 1} loss: {batch_loss} step: {i} / {len(self.train_dataloader)}"
+                        f"epoch: {epoch + 1} loss: {batch_loss} step: {step} / {len(self.train_dataloader)}"
                     )
-                self.lr_scheduler.step()
+                    torch.save(
+                        self.model.state_dict(),
+                        model_save_path + f".{model_version}.epoch_{epoch}.step_{step}",
+                    )
+                    if loss_save_path is not None:
+                        step_train_losses.append(batch_loss)
+                        with open(loss_save_path + f".{model_version}.json", "w") as f:
+                            f.write(json.dumps(step_train_losses))
+                if self.lr_scheduler is not None:
+                    self.lr_scheduler.step()
             train_loss /= len(self.train_dataloader)
             train_losses.append(train_loss)
 
             print(f"epoch: {epoch + 1}, train loss: {train_loss}")
             print(f"epoch: {epoch + 1}, train losses: {train_losses}")
-            torch.save(self.model.state_dict(), model_save_path + f".v3.{epoch}")
+            torch.save(
+                self.model.state_dict(),
+                model_save_path + f".{model_version}.epoch_{epoch}.step_0",
+            )
         return train_losses, None

@@ -252,3 +252,77 @@ jeden morgen genie ße ich eine tasse kaffee , während ich den sonnen auf gang 
 Technology is rapidly advancing, transforming how we live and work.
 die technologie schreitet rasch voran und verändert unsere lebens - und arbeits weise .
 ```
+
+# Week4
+
+gpt-2 small을 직접 구현합니다.
+
+## GPT-2
+
+모델 구조는 아래 링크들을 참고했습니다.
+
+1. [gpt1 논문](https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf)
+2. [gpt2 논문](https://d4mucfpksywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
+3. [minGPT 코드](https://github.com/karpathy/minGPT)
+4. [gpt2 모델 설명](https://jalammar.github.io/illustrated-gpt2/)
+
+메모리 이슈로 batch size를 64로 많이 줄였고, learning rate는 간단하게 고정했습니다
+
+### train
+
+training time: over 30hr
+
+```bash
+python3 week4/train.py
+```
+
+### loss
+
+```bash
+python3 week4/plot.py
+```
+
+![Alt text](week4/assets/loss.png)
+
+### test
+
+```bash
+python3 week4/test.py
+```
+
+```text
+cross entropy: 4.801433165868123
+perplexity: 121.6846869504162
+```
+
+### generate
+
+```bash
+python3 week4/generate.py
+```
+
+```text
+<prompt> My name is Teven and I am
+<generated> 
+ glad to be in my teens. i got an invitation to do my two cents a day. this is for my niece, my sister, and that little girl. there wasn't even a chance they would not want her anyway. i was quite upset. i am very sorry because i'm not my father.
+
+after the event was over i was in my youth but i was also trying to get out of bed and sleep in bed and i got out to see my sister at the end and
+====================
+
+<prompt> I am a student at KAIST
+<generated> 
+u university in the united states. the i do not have a masters degree. i do not live in new york but if i have an education i may have to stay here. i am currently studying with a phd candidate and i would not do my research.
+
+my research and skills have grown in recent years and i have grown accustomed to working on my education.
+
+in my research i have grown in the same area. you have to have your education in order to be successful and productive
+====================
+
+<prompt> I like to eat
+<generated> 
+ it and this is the biggest moment the internet has ever seen:
+
+a lot of our favorite websites, videos, websites and everything else is going on. it is being done by the whole of the adult web. they’re doing everything they can to stop people doing things that are not just important to the children or their lives or the lives of those in their communities.
+
+the idea isn’t even an attempt to stop people doing things like this and doing it by the whole of%
+```

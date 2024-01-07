@@ -30,6 +30,8 @@ class Trainer(BaseModel, ABC):
         num_epoch: int,
         device: str,
         model_save_path: str,
+        model_version: str = "v1",
+        loss_save_path: Optional[str] = None,
         model_load_path: Optional[str] = None,
         verbose: bool = False,
     ) -> tuple[list[float], Optional[list[float]]]:

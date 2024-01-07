@@ -3,7 +3,7 @@ from math import cos, sin, sqrt
 import torch
 from torch import Tensor, nn
 
-from libs.recursive_device_module import RecursiveDeviceModule
+from libs.modules import RecursiveDeviceModule, StrNumOfParamsModule
 
 
 class PositionalEncoding(RecursiveDeviceModule):
@@ -342,7 +342,7 @@ class Decoder(RecursiveDeviceModule):
         return x
 
 
-class Transformer(RecursiveDeviceModule):
+class Transformer(StrNumOfParamsModule, RecursiveDeviceModule):
     def __init__(
         self,
         padding_idx: int,
