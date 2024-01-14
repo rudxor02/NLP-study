@@ -1,12 +1,7 @@
-# Scaling Law
-
-URL: <https://arxiv.org/pdf/2001.08361.pdf>
-상태: 완료
-최종 편집 일시:_24년 1월 15일 오전 1:49
-
 # Intro
 
 이 논문은 전체적으로 model size와 compute resource, dataset size의 다양한 상황에서의 loss와의 상관관계를 실험적으로 얻어낸 결과를 공유하는 논문이다.
+URL: <https://arxiv.org/pdf/2001.08361.pdf>
 
 *수식은 그냥 캡처로 하겠다*
 
