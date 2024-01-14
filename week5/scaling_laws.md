@@ -12,7 +12,7 @@ URL: <https://arxiv.org/pdf/2001.08361.pdf>
 
 # Notation
 
-![Untitled](week5/assets/scaling_laws/Untitled.png)
+![Untitled](assets/scaling_laws/Untitled.png)
 
 L은 loss, N은 model size, B는 batch size, S는 number of training step이라고만 알면 된다.
 
