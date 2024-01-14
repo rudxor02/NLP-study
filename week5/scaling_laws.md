@@ -58,7 +58,7 @@ N이 비슷할 때 LSTM과도 성능을 비교해봤는데, LSTM이 context 초�
 
 ## Model size and training time
 
-![Untitled](assets/scaling_laws/Untitled 8.png)
+![Untitled](assets/scaling_laws/Untitled_8.png)
 
 위에서 언급한 notation에서 Bcrit은 time과 compute의 적절한 타협을 보는 B라고 했다. 그게 위에서 나온다. (아마 time과 step이 완전 비례한다는 게 전제인 듯, 5.1도 실험적 결과이다) **Bcrit도 N에 상관없이 L에 의해서만 결정된다고 한다.**
 
