@@ -3,6 +3,7 @@
 ![Untitled](assets/flan/Untitled.png)
 
 fine tuning을 더 잘 했더니, (insruction tuning) gpt-3보다 개선된 결과를 보였고 unseen task(fine tuning하지 않은 task)도 잘 이해하는 결과를 보였다고 하는 논문이다.
+
 URL: <https://openreview.net/pdf?id=gEZrGCozdqR>
 
 # Instruction tuning
