@@ -8,7 +8,6 @@ export PYTHONPATH='.'
 
 # Week 1
 
-
 ## vocab
 
 text 뭉치를 token으로 분리하고, frequency로 자릅니다
@@ -326,3 +325,7 @@ a lot of our favorite websites, videos, websites and everything else is going on
 
 the idea isn’t even an attempt to stop people doing things like this and doing it by the whole of%
 ```
+
+# Week5
+
+논문을 읽고 요약합니다. (`week5/` 참고)
