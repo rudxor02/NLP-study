@@ -81,7 +81,7 @@ L(N, Smin)으로부터 도출한 결과와도 비슷하다고 한다.
 되게 수식이 많고, 그것도 대부분 실험적으로 도출한 식이라서 아 그렇구나~ 하고 넘어간 게, 그리고 그냥 이해 안되는 게 많은 논문이었다… ㅠ
 
 - transformer는 model shape은 별로 안 중요
-- model size가 엄청 중요하다. model size가 엄청 크면 conpute efficient해짐. (sample efficient)
+- model size가 엄청 중요하다. model size가 엄청 크면 compute efficient해짐. (sample efficient)
 
 ![Untitled](assets/scaling_laws/Untitled_13.png)
 

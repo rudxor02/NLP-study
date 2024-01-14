@@ -44,7 +44,7 @@ helpful은 prompt의 의도를 잘 이해하고 답하는 것을 말한다. “Q
 
 ## Honest
 
-honest는 deep learning model의 특성상 모델이 블랙박스이기 때문에, 실제 모델이 hoenst하게 내놓은 답인지 알 수 없다. 그래서 hallucination과 TrusthfulQA 데이터셋을 이용해서 측정했다고 한다.
+honest는 deep learning model의 특성상 모델이 블랙박스이기 때문에, 실제 모델이 honest하게 내놓은 답인지 알 수 없다. 그래서 hallucination과 TrusthfulQA 데이터셋을 이용해서 측정했다고 한다.
 
 ## Harmful
 
@@ -68,7 +68,7 @@ honest하다고 한다!
 
 ![Untitled](assets/instruct_gpt/Untitled_5.png)
 
-resoectful prompt (safe, respectful output을 만들어내게 하는 prompt)에서는 less toxic이지만, respectful prompt가 없을 땐 gpt보다 더욱 harmful한 output을 만들어낸다고 한다. 그리고 일부러 toxic한 output을 내게 하려고 했을 때도 gpt보다 더 harmful하다고 한다. (자기네들이 따로 낸 결론이 있는데, sft 모델은 가장 toxic하지 않았지만, labeler들 사이에서 가장 rank가 낮았다고 한다)
+respectful prompt (safe, respectful output을 만들어내게 하는 prompt)에서는 less toxic이지만, respectful prompt가 없을 땐 gpt보다 더욱 harmful한 output을 만들어낸다고 한다. 그리고 일부러 toxic한 output을 내게 하려고 했을 때도 gpt보다 더 harmful하다고 한다. (자기네들이 따로 낸 결론이 있는데, sft 모델은 가장 toxic하지 않았지만, labeler들 사이에서 가장 rank가 낮았다고 한다)
 
 bias는 unclear pattern을 띠고 있다고 한다.
 
