@@ -51,7 +51,7 @@ def load_dataset_() -> tuple[DatasetDict, DatasetDict]:
     return train_dataset, val_dataset
 
 
-def preprocess_dataset(tokenizer: LlamaTokenizer, dataset: DatasetDict) -> DatasetDict:
+def preprocess_dataset(dataset: DatasetDict) -> DatasetDict:
     linearizer = IndexedRowTableLinearize()
 
     def format_dataset(example: dict[str, Any]):
@@ -73,25 +73,6 @@ def preprocess_dataset(tokenizer: LlamaTokenizer, dataset: DatasetDict) -> Datas
     # reference: https://github.com/mrm8488/shared_colab_notebooks/blob/master/T5_wikiSQL_with_HF_transformers.ipynb
     dataset = dataset.map(format_dataset, remove_columns=dataset.column_names)
 
-    # def convert_to_features(example_batch: list[dict[str, Any]]):
-    #     input_encodings = tokenizer.batch_encode_plus(
-    #         example_batch["input"], pad_to_max_length=True, max_length=64
-    #     )
-
-    #     encodings = {
-    #         "input_ids": input_encodings["input_ids"],
-    #         "attention_mask": input_encodings["attention_mask"],
-    #     }
-    #     return encodings
-
-    # dataset = dataset.map(
-    #     convert_to_features, batched=True, remove_columns=dataset.column_names
-    # )
-
-    # columns = ["input_ids", "attention_mask"]
-
-    # dataset.set_format(type="torch", columns=columns)
-
     return dataset
 
 
@@ -100,7 +81,7 @@ if __name__ == "__main__":
     model = load_model()
     train_dataset, val_dataset = load_dataset_()
 
-    train_dataset = preprocess_dataset(tokenizer, train_dataset)
+    train_dataset = preprocess_dataset(train_dataset)
     # val_dataset = preprocess_dataset(tokenizer, val_dataset)
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
