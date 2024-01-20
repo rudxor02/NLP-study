@@ -26,10 +26,8 @@ def load_dataset_():
     return test_dataset
 
 
-def load_tokenizer() -> LlamaTokenizer:
-    tokenizer = AutoTokenizer.from_pretrained(
-        "./week6/data/sft_v2/checkpoint-314/", local_files_only=True
-    )
+def load_tokenizer(local_path: str) -> LlamaTokenizer:
+    tokenizer = AutoTokenizer.from_pretrained(local_path, local_files_only=True)
     tokenizer.add_eos_token = False
     print("tokenizer loaded")
     return tokenizer
@@ -61,9 +59,9 @@ def preprocess_dataset(dataset: DatasetDict) -> DatasetDict:
     return dataset
 
 
-def load_model() -> LlamaModel:
+def load_model(local_path: str) -> LlamaModel:
     model = AutoModelForCausalLM.from_pretrained(
-        "./week6/data/sft_v2/checkpoint-314/",
+        local_path,
         local_files_only=True,
         cache_dir="/data/hub",
     )
@@ -113,7 +111,7 @@ def test(tokenizer: LlamaTokenizer, model: LlamaModel, examples: list[dict[str, 
         _, _, predicted_query = output.partition("### SQL\n")
         predicted_query = predicted_query.replace("</s>", "").replace("\n", "")
 
-        if predicted_query.lower() == label_query.lower():
+        if predicted_query.lower() == label_query.replace("'", "").lower():
             print("correct")
             correct_count += 1
         else:
@@ -126,8 +124,9 @@ def test(tokenizer: LlamaTokenizer, model: LlamaModel, examples: list[dict[str, 
 
 
 if __name__ == "__main__":
-    tokenizer = load_tokenizer()
-    model = load_model()
+    local_path = "./week6/data/sft_v2/checkpoint-1775/"
+    tokenizer = load_tokenizer(local_path)
+    model = load_model(local_path)
     test_dataset = load_dataset_()
     test_dataset = preprocess_dataset(test_dataset)
     test_dataset = test_dataset.select(range(100))
