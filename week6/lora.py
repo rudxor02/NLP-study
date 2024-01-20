@@ -74,6 +74,18 @@ def preprocess_dataset(dataset: DatasetDict) -> DatasetDict:
     return dataset
 
 
+def collate_fn(examples: list[dict[str, Any]], tokenizer: LlamaTokenizer):
+    """
+    Just for checking inputs
+    """
+    print(examples[0]["input_ids"])
+    for example in examples:
+        print(tokenizer.decode(example["input_ids"]))
+        print(len(example["input_ids"]))
+    print(len(examples))
+    raise
+
+
 def train_with_lora_lib(
     model: LlamaModel, tokenizer: LlamaTokenizer, train_dataset: DatasetDict
 ):
@@ -92,28 +104,20 @@ def train_with_lora_lib(
     model.print_trainable_parameters()
 
     collator = DataCollatorForLanguageModeling(
-        tokenizer=tokenizer, mlm=False, pad_to_multiple_of=512, return_tensors="pt"
+        tokenizer=tokenizer,
+        mlm=False,
+        pad_to_multiple_of=config.max_seq_length,
+        return_tensors="pt",
     )
-
-    def collate_fn(examples):
-        """
-        Just for checking inputs
-        """
-        print(examples[0]["input_ids"])
-        for example in examples:
-            print(tokenizer.decode(example["input_ids"]))
-            print(len(example["input_ids"]))
-        print(len(examples))
-        raise
 
     train_args = TrainingArguments(
         "week6/data/sft/",
         per_device_eval_batch_size=config.batch_size,
         per_device_train_batch_size=config.batch_size,
-        num_train_epochs=1,
-        logging_steps=1000,
-        save_steps=1,
-        save_total_limit=1,
+        num_train_epochs=config.num_train_epochs,
+        logging_steps=config.logging_steps,
+        save_steps=config.save_steps,
+        save_total_limit=config.save_total_limit,
         # evaluation_strategy="steps",
         # eval_steps=1,
         logging_dir="week6/data/sft/",
@@ -126,8 +130,8 @@ def train_with_lora_lib(
         data_collator=collator,
         train_dataset=train_dataset,
         dataset_text_field="question",
-        max_seq_length=512,
-        # data_collator=collate_fn,
+        max_seq_length=config.max_seq_length,
+        # data_collator=partial(collate_fn, tokenizer=tokenizer),
         # compute_metrics=compute_metrics,
         # eval_dataset=val_dataset,
     )
