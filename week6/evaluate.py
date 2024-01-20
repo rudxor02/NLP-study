@@ -3,9 +3,18 @@
 
 import json
 
+import torch
 from datasets import load_dataset
 from torch import nn
-from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaModel, LlamaTokenizer
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    LlamaModel,
+    LlamaTokenizer,
+    StoppingCriteria,
+    StoppingCriteriaList,
+    TextStreamer,
+)
 
 from week6.config import config
 from week6.dbengine import DBEngine
@@ -227,16 +236,16 @@ def epoch_acc(model: nn.Module, batch_size: int, sql_data, table_data, pred_entr
 
 def load_tokenizer() -> LlamaTokenizer:
     tokenizer = AutoTokenizer.from_pretrained(
-        "./week6/data/sft_v1/checkpoint-3523/", local_files_only=True
+        "./week6/data/sft_v2/checkpoint-314/", local_files_only=True
     )
-    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.add_eos_token = False
     print("tokenizer loaded")
     return tokenizer
 
 
 def load_model() -> LlamaModel:
     model = AutoModelForCausalLM.from_pretrained(
-        "./week6/data/sft_v1/checkpoint-3523/",
+        "./week6/data/sft_v2/checkpoint-314/",
         local_files_only=True,
         cache_dir="/data/hub",
     )
@@ -355,16 +364,28 @@ if __name__ == "__main__":
         + "\n### SQL\n"
     )
     prompt_encodings = tokenizer(prompt, return_tensors="pt")
+
     prompt_encodings = prompt_encodings.to("cuda:5")
+    streamer = TextStreamer(tokenizer)
+
+    class StopOnTokens(StoppingCriteria):
+        def __call__(
+            self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+        ) -> bool:
+            stop_ids = [0, 2]
+            for stop_id in stop_ids:
+                if input_ids[0][-1].item() == stop_id:
+                    return True
+            return False
+
     print("predicting...")
     prompt_output = model.generate(
         **prompt_encodings,
         max_length=200,
         do_sample=True,
+        streamer=streamer,
         top_k=50,
         top_p=0.95,
-        num_return_sequences=5,
         temperature=0.9,
+        stopping_criteria=StoppingCriteriaList([StopOnTokens()]),
     )
-    prompt_output = tokenizer.batch_decode(prompt_output)
-    print(prompt_output[0])
