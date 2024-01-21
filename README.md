@@ -346,7 +346,7 @@ python3 week6/lora.py
 
 ## sft with my code
 
-직접 구현한 LoRA 코드입니다. (r=8, alpha=16, dropout=0.1, (q, k, v, o))
+직접 구현한 LoRA 코드입니다. (r=8, alpha=8, dropout=0.1, (q, k, v, o))
 
 peft 라이브러리를 참고하여 (세부 구현은 많이 다릅니다) wrapper module을 하나 두고 layer를 갈아끼우는 방식으로 구현했습니다. 
 
