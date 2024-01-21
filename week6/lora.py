@@ -122,7 +122,7 @@ def train_with_peft_lib(
         save_total_limit=config.save_total_limit,
         # evaluation_strategy="steps",
         # eval_steps=1,
-        logging_dir=config.lib_output_dir,
+        logging_dir=config.lib_logging_dir,
     )
 
     trainer = SFTTrainer(
