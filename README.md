@@ -366,7 +366,7 @@ python3 week6/my_lora.py
 python3 week6/plot.py
 ```
 
-![Alt text](assets/loss.png)
+![Alt text](week6/assets/loss.png)
 
 ## evaluate
 
