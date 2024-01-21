@@ -1,6 +1,3 @@
-# reference: https://github.com/xiaojunxu/SQLNet/blob/master/sqlnet/utils.py#
-
-
 from typing import Any
 
 import torch

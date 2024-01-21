@@ -64,7 +64,6 @@ class MyLoraLinear(nn.Module):
             ) + ret
         else:
             raise NotImplementedError
-            ret = self._my_lora_inner_layer(input)
 
         return ret
 
@@ -147,6 +146,9 @@ class MyLoraWrapper(PreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ):
+        """
+        just forward to inner model
+        """
         return self._my_lora_inner_model.forward(
             input_ids=input_ids,
             attention_mask=attention_mask,

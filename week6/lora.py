@@ -120,8 +120,6 @@ def train_with_peft_lib(
         logging_steps=config.logging_steps,
         save_steps=config.save_steps,
         save_total_limit=config.save_total_limit,
-        # evaluation_strategy="steps",
-        # eval_steps=1,
         logging_dir=config.lib_logging_dir,
     )
 
@@ -133,9 +131,6 @@ def train_with_peft_lib(
         train_dataset=train_dataset,
         dataset_text_field="question",
         max_seq_length=config.max_seq_length,
-        # data_collator=partial(collate_fn, tokenizer=tokenizer),
-        # compute_metrics=compute_metrics,
-        # eval_dataset=val_dataset,
     )
 
     print("training...")
@@ -148,7 +143,4 @@ if __name__ == "__main__":
     train_dataset, val_dataset = load_dataset_()
 
     train_dataset = preprocess_dataset(train_dataset)
-    # cannot evaluate because of memory issue
-    # val_dataset = preprocess_dataset(tokenizer, val_dataset)
-
     train_with_peft_lib(model, tokenizer, train_dataset)
