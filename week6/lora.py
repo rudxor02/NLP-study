@@ -43,7 +43,9 @@ def load_pretrained_model() -> LlamaModel:
 
 def load_dataset_() -> tuple[DatasetDict, DatasetDict]:
     train_dataset, val_dataset = load_dataset(
-        "wikisql", cache_dir="week6/data/datasets", split=["train", "validation"]
+        "wikisql",
+        cache_dir="week6/data/datasets",
+        split=["train", "validation"],
     )
     print("dataset loaded")
     return train_dataset, val_dataset
@@ -70,7 +72,7 @@ def preprocess_dataset(dataset: DatasetDict) -> DatasetDict:
 
     # reference: https://github.com/mrm8488/shared_colab_notebooks/blob/master/T5_wikiSQL_with_HF_transformers.ipynb
     dataset = dataset.map(format_dataset, remove_columns=dataset.column_names)
-
+    print("dataset preprocessed")
     return dataset
 
 
@@ -86,10 +88,10 @@ def collate_fn(examples: list[dict[str, Any]], tokenizer: LlamaTokenizer):
     raise
 
 
-def train_with_lora_lib(
+def train_with_peft_lib(
     model: LlamaModel, tokenizer: LlamaTokenizer, train_dataset: DatasetDict
 ):
-    from peft import get_peft_model
+    from peft.mapping import get_peft_model
     from peft.tuners.lora.config import LoraConfig
     from peft.utils.peft_types import TaskType
 
@@ -111,7 +113,7 @@ def train_with_lora_lib(
     )
 
     train_args = TrainingArguments(
-        "week6/data/sft/",
+        config.lib_output_dir,
         per_device_eval_batch_size=config.batch_size,
         per_device_train_batch_size=config.batch_size,
         num_train_epochs=config.num_train_epochs,
@@ -120,7 +122,7 @@ def train_with_lora_lib(
         save_total_limit=config.save_total_limit,
         # evaluation_strategy="steps",
         # eval_steps=1,
-        logging_dir="week6/data/sft/",
+        logging_dir=config.lib_output_dir,
     )
 
     trainer = SFTTrainer(
@@ -149,4 +151,4 @@ if __name__ == "__main__":
     # cannot evaluate because of memory issue
     # val_dataset = preprocess_dataset(tokenizer, val_dataset)
 
-    train_with_lora_lib(model, tokenizer, train_dataset)
+    train_with_peft_lib(model, tokenizer, train_dataset)

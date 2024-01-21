@@ -124,10 +124,11 @@ def test(tokenizer: LlamaTokenizer, model: LlamaModel, examples: list[dict[str, 
 
 
 if __name__ == "__main__":
-    local_path = "./week6/data/sft_v2/checkpoint-1775/"
+    local_path = config.lib_checkpoint_path
     tokenizer = load_tokenizer(local_path)
     model = load_model(local_path)
     test_dataset = load_dataset_()
+    test_dataset = test_dataset.shuffle()
     test_dataset = preprocess_dataset(test_dataset)
-    test_dataset = test_dataset.select(range(100))
-    test(tokenizer, model, test_dataset)
+    examples = test_dataset.select(range(100))
+    test(tokenizer, model, examples)
