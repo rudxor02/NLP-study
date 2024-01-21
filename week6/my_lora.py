@@ -56,12 +56,16 @@ class MyLoraLinear(nn.Module):
 
     def forward(self, input: Tensor, *args: Any, **kwargs: Any):
         if self.training:
-            ret = self._my_lora_inner_layer(input)
-            ret = self._my_lora_dropout(ret)
-            ret = (
-                self._my_lora_wrapper_layer_B(self._my_lora_wrapper_layer_A(ret))
-                * self._my_lora_scaling
-            ) + ret
+            # performance very low
+            # ret = self._my_lora_inner_layer(input)
+            # ret = self._my_lora_dropout(ret)
+            # ret = (
+            #     self._my_lora_wrapper_layer_B(self._my_lora_wrapper_layer_A(ret))
+            #     * self._my_lora_scaling
+            # ) + ret
+            ret = self._my_lora_wrapper_layer_B(
+                self._my_lora_wrapper_layer_A(input)
+            ) + self._my_lora_inner_layer(input)
         else:
             raise NotImplementedError
 
