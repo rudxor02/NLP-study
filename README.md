@@ -346,7 +346,7 @@ python3 week6/lora.py
 
 ## sft with my code
 
-직접 구현한 LoRA 코드입니다. (r=8, (q, k, v, o))
+직접 구현한 LoRA 코드입니다. (r=2, (q, k, v, o))
 
 peft 라이브러리를 참고하여 (세부 구현은 많이 다릅니다) wrapper module을 하나 두고 layer를 갈아끼우는 방식으로 구현했습니다. 
 
@@ -426,11 +426,40 @@ python3 week6/my_evaluate.py
 ```
 
 ```text
-
+...
+accuracy: 0.56
 ```
 
 아래는 생성 예시입니다.
 
 ```text
+<s> ### Table
+col : Team | Match | Points | Draw | Lost row 1 : Górnik Rybnik | 14 | 24 | 0 | 2 row 2 : Ślęza Wrocław | 14 | 20 | 0 | 4 row 3 : Gwardia Bydgoszcz | 14 | 16 | 0 | 6
+### Question
+What is the Match with Points that are 24?
+### SQL
+SELECT Match FROM table WHERE Points = 24</s>
 
+label query: SELECT Match FROM table WHERE Points = 24
+predicted query: SELECT Match FROM table WHERE Points = 24
+
+<s> ### Table
+col : Series # | Season # | Title | Directed by | Written by | Original air date | U.S. viewers (millions) row 1 : 88 | 1 | " You're Gonna Love Tomorrow " | Larry Shaw | Marc Cherry | September28,2008 | 18.68 row 2 : 89 | 2 | " We're So Happy You're So Happy " | David Grossman | Alexandra Cunningham | October5,2008 | 15.69 row 3 : 90 | 3 | " Kids Ain't Like Everybody Else " | Bethany Rooney | Joe Keenan | October12,2008 | 15.51
+### Question
+Who was the writer when there were 15.85 million US viewers?
+### SQL
+SELECT Writer FROM table WHERE U.S. viewers (millions) = 15.85</s>
+
+label query: SELECT Written by FROM table WHERE U.S. viewers (millions) = 15.85
+predicted query: SELECT Writer FROM table WHERE U.S. viewers (millions) = 15.85
+
+<s> ### Table
+col : Player | No.(s) | Height in Ft. | Position | Years with Spurs | School/Previous Club Team/Country row 1 : Ahearn, Blake Blake Ahearn | 18 | 6-2 | Guard | 2008-09 | Missouri State row 2 : Alexander, Cory Cory Alexander | 1 | 6-1 | Guard | 1995-98 | Virginia row 3 : Anderson, Derek Derek Anderson | 1 | 6-5 | Guard | 2000-01 | Kentucky
+### Question
+What is Player, when Years With Spurs is 1988-95?
+### SQL
+SELECT Player FROM table WHERE Years with Spurs = 1988-95</s>
+
+label query: SELECT Player FROM table WHERE Years with Spurs = 1988-95
+predicted query: SELECT Player FROM table WHERE Years with Spurs = 1988-95
 ```
