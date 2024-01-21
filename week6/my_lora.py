@@ -37,6 +37,8 @@ class MyLoraLinear(nn.Module):
         self._my_lora_config = config
         self._my_lora_init_wrapper_layer()
         self._my_lora_freeze_gradient()
+        self._my_lora_dropout = nn.Dropout(config.lora_dropout)
+        self._my_lora_scaling = self._my_lora_config.lora_alpha / self._my_lora_config.r
 
     def _my_lora_init_wrapper_layer(self):
         self._my_lora_wrapper_layer_A = nn.Linear(
@@ -54,11 +56,17 @@ class MyLoraLinear(nn.Module):
 
     def forward(self, input: Tensor, *args: Any, **kwargs: Any):
         if self.training:
-            return self._my_lora_wrapper_layer_B(
-                self._my_lora_wrapper_layer_A(input)
-            ) + self._my_lora_inner_layer(input)
+            ret = self._my_lora_inner_layer(input)
+            ret = self._my_lora_dropout(ret)
+            ret = (
+                self._my_lora_wrapper_layer_B(self._my_lora_wrapper_layer_A(ret))
+                * self._my_lora_scaling
+            )
         else:
-            return self._my_lora_merged_weight(input)
+            raise NotImplementedError
+            ret = self._my_lora_inner_layer(input)
+
+        return ret
 
     def _my_lora_merged_weight(self):
         return (
@@ -66,26 +74,12 @@ class MyLoraLinear(nn.Module):
             + self._my_lora_inner_layer.weight
         )
 
-    # def get_extra_state(self):
-    #     return {
-    #         "my_lora_wrapper_layer_A_weight": self._my_lora_wrapper_layer_A.weight,
-    #         "my_lora_wrapper_layer_B_weight": self._my_lora_wrapper_layer_B.weight,
-    #     }
-
-    # def set_extra_state(self, state: Any):
-    #     self._my_lora_inner_layer.weight += (
-    #         state["my_lora_wrapper_layer_B_weight"]
-    #         @ state["my_lora_wrapper_layer_A_weight"]
-    #     ).detach()
-
     def _save_to_state_dict(
         self, destination: OrderedDict[str, Any], prefix: str, keep_vars: bool
     ):
         """
         override nn.Module._save_to_state_dict
         """
-        # extra_state_key = prefix + _EXTRA_STATE_KEY_SUFFIX
-        # destination[extra_state_key] = self.get_extra_state()
         destination[prefix.replace("_my_lora_inner_layer", "") + "weight"] = (
             self._my_lora_merged_weight()
             if keep_vars
@@ -183,12 +177,6 @@ class MyLoraWrapper(PreTrainedModel):
             keep_vars=keep_vars,
         )
 
-        # original_state_dict = {
-        #     k: v
-        #     for k, v in original_state_dict.items()
-        #     if "my_lora_wrapper_layer_" in k
-        # }
-
         return original_state_dict
 
     def print_trainable_parameters(self):
@@ -202,46 +190,6 @@ class MyLoraWrapper(PreTrainedModel):
         print(
             f"trainable params: {trainable_params} || total params: {total_prams} || trainable ratio: {trainable_params / total_prams}"
         )
-
-    # def load_state_dict(
-    #     self, state_dict: dict[str, Any], strict: bool = True, assign: bool = False
-    # ):
-    #     """
-    #     override nn.Module.load_state_dict
-    #     """
-    #     return self._my_lora_inner_model.load_state_dict(state_dict, strict, assign)
-
-    # @classmethod
-    # def from_pretrained(
-    #     cls,
-    #     local_path: str,
-    # ):
-    #     model = AutoModelForCausalLM.from_pretrained(
-    #         model_name,
-    #         local_files_only=True,
-    #         cache_dir="/data/hub",
-    #     )
-
-    #     print("pretrained model loaded")
-
-    #     wrapper_model = MyLoraWrapper(
-    #         model,
-    #         MyLoraConfig(
-    #             r=config.lora_r,
-    #             lora_alpha=config.lora_alpha,
-    #             lora_dropout=config.lora_dropout,
-    #         ),
-    #     )
-
-    #     print(torch.load(os.path.join(local_path, "pytorch_model.bin")))
-    #     raise
-
-    #     wrapper_model.load_state_dict(
-    #         torch.load(os.path.join(local_path, "pytorch_model.bin")),
-    #         assign=True,
-    #     )
-
-    #     return model
 
 
 def train_with_my_lora(
@@ -261,13 +209,6 @@ def train_with_my_lora(
         return_tensors="pt",
     )
 
-    # model.to("cuda")
-    # model.save_pretrained("test/", safe_serialization=False)
-
-    # f = torch.load("test/rng_state.pt")
-    # print(f)
-    # raise
-
     train_args = TrainingArguments(
         config.my_output_dir,
         per_device_eval_batch_size=config.batch_size,
@@ -277,9 +218,7 @@ def train_with_my_lora(
         save_steps=config.save_steps,
         save_total_limit=config.save_total_limit,
         logging_dir=config.my_logging_dir,
-        logging_strategy="steps",
-        log_level="info",
-        # save_safetensors=False,
+        logging_strategy=config.logging_strategy,
     )
 
     trainer = SFTTrainer(
@@ -293,9 +232,8 @@ def train_with_my_lora(
     )
 
     print("training...")
-    trainer.train(
-        # resume_from_checkpoint=True
-    )
+    # trainer.train(resume_from_checkpoint=True)
+    trainer.train()
 
 
 if __name__ == "__main__":
@@ -304,5 +242,4 @@ if __name__ == "__main__":
     train_dataset, val_dataset = load_dataset_()
 
     train_dataset = preprocess_dataset(train_dataset)
-    train_with_my_lora(model, tokenizer, train_dataset)
     train_with_my_lora(model, tokenizer, train_dataset)
