@@ -61,7 +61,7 @@ class MyLoraLinear(nn.Module):
             ret = (
                 self._my_lora_wrapper_layer_B(self._my_lora_wrapper_layer_A(ret))
                 * self._my_lora_scaling
-            )
+            ) + ret
         else:
             raise NotImplementedError
             ret = self._my_lora_inner_layer(input)
