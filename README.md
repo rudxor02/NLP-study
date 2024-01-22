@@ -329,3 +329,137 @@ the idea isn’t even an attempt to stop people doing things like this and doing
 # Week5
 
 논문을 읽고 요약합니다. (`week5/` 참고)
+
+# Week6
+
+LoRA를 peft 라이브러리를 사용하여 / 직접 구현합니다.
+
+## sft with library
+
+library를 사용해서 비교적 짧은 코드로 sft를 진행할 수 있습니다. (r=8, alpha=32, dropout=0.1, (q, v))
+
+dataset은 적당한 전처리 과정을 거쳤습니다.
+
+```bash
+python3 week6/lora.py
+```
+
+## sft with my code
+
+직접 구현한 LoRA 코드입니다. (r=2, (q, k, v, o))
+
+peft 라이브러리를 참고하여 (세부 구현은 많이 다릅니다) wrapper module을 하나 두고 layer를 갈아끼우는 방식으로 구현했습니다. 
+
+*pretrain model을 학습 중간에 저장할 때 모델 사이즈가 커서 모든 weight를 저장하는 게 너무 오래 걸려서 (몇십GB단위...) adapter weight만 저장하고, 불러올 때 adapter weight만 불러오는  방식으로 구현하려 했으나 huggingface  이슈가 끊이질 않아서 포기했습니다.*
+
+```bash
+python3 week6/my_lora.py
+```
+
+## plot losses
+
+아래는 my_lora의 loss 그래프입니다.
+
+*library로 sft할 때 깜빡하고 loss를 저장 안했네요*
+
+```bash
+python3 week6/plot.py
+```
+
+![Alt text](week6/assets/loss.png)
+
+## evaluate
+
+metric은 accuracy입니다. shuffle한 후 100개 샘플로 측정했습니다.
+
+model이 생성한 sql을 label query와 비교할 때 logical form 혹은 실행 결과로 비교하는 작업을 코드를 작성하기에는 부담이 있고, 데이터셋의 쿼리가 nested query가 아니라 비교적 간단해서 exact query만 비교했습니다.
+
+### evaluate sft model with library
+
+```bash
+python3 week6/evaluate.py
+```
+
+```text
+...
+accuracy: 0.75
+```
+
+아래는 생성 예시입니다. (`### SQL`부터 `</s>`까지가 모델이 생성한 텍스트)
+
+```text
+<s> ### Table
+col : Series # | Season # | Title | Directed by | Written by | Original air date row 1 : 248 | 1 | "The Little Match Girl" | James Burrows | Dan Staley and Rob Long | September24,1992 row 2 : 249 | 2 | "The Beer Is Always Greener" | James Burrows | Tom Leopold | October1,1992 row 3 : 250 | 3 | "The King of Beers" | John Ratzenberger | Dan O'Shannon | October8,1992
+### Question
+What date did episode 258 in the series originally air?
+### SQL
+SELECT Original air date FROM table WHERE Series # = 258</s>
+
+label query: SELECT Original air date FROM table WHERE Series # = 258
+predicted query: SELECT Original air date FROM table WHERE Series # = 258
+
+<s> ### Table
+col : Player | Touchdowns | Extra points | Field goals | Points row 1 : Tom Hammond | 2 | 12 | 0 | 22 row 2 : Norcross | 4 | 0 | 0 | 20 row 3 : Heston | 3 | 0 | 0 | 15
+### Question
+How many points does Tom Hammond have if he has more than 12 points?
+### SQL
+SELECT COUNT Points FROM table WHERE Player = tom hammond AND Points > 12</s>
+
+label query: SELECT SUM Points FROM table WHERE Player = tom hammond AND Extra points > 12
+predicted query: SELECT COUNT Points FROM table WHERE Player = tom hammond AND Points > 12
+
+<s> ### Table
+col : Branding | Callsign | Frequency | Power (kW) | Location row 1 : Hot FM 92.5 Santiago [ citation needed ] | DWHT | 92.5MHz | 5kW | Santiago City row 2 : Hot FM 92.1 Labo, Camarines Norte | DWBO | 92.1MHz | 5kW | Labo, Camarines Norte row 3 : Hot FM 93.1 Laoag | DWNA | 93.1MHz | 1kW | Laoag City
+### Question
+What is the branding for callsign dypv?
+### SQL
+SELECT Branding FROM table WHERE Callsign = DYPV</s>
+
+label query: SELECT Branding FROM table WHERE Callsign = DYPV
+predicted query: SELECT Branding FROM table WHERE Callsign = DYPV
+```
+
+### evaluate sft model with my code
+
+```bash
+python3 week6/my_evaluate.py
+```
+
+```text
+...
+accuracy: 0.56
+```
+
+아래는 생성 예시입니다.
+
+```text
+<s> ### Table
+col : Team | Match | Points | Draw | Lost row 1 : Górnik Rybnik | 14 | 24 | 0 | 2 row 2 : Ślęza Wrocław | 14 | 20 | 0 | 4 row 3 : Gwardia Bydgoszcz | 14 | 16 | 0 | 6
+### Question
+What is the Match with Points that are 24?
+### SQL
+SELECT Match FROM table WHERE Points = 24</s>
+
+label query: SELECT Match FROM table WHERE Points = 24
+predicted query: SELECT Match FROM table WHERE Points = 24
+
+<s> ### Table
+col : Series # | Season # | Title | Directed by | Written by | Original air date | U.S. viewers (millions) row 1 : 88 | 1 | " You're Gonna Love Tomorrow " | Larry Shaw | Marc Cherry | September28,2008 | 18.68 row 2 : 89 | 2 | " We're So Happy You're So Happy " | David Grossman | Alexandra Cunningham | October5,2008 | 15.69 row 3 : 90 | 3 | " Kids Ain't Like Everybody Else " | Bethany Rooney | Joe Keenan | October12,2008 | 15.51
+### Question
+Who was the writer when there were 15.85 million US viewers?
+### SQL
+SELECT Writer FROM table WHERE U.S. viewers (millions) = 15.85</s>
+
+label query: SELECT Written by FROM table WHERE U.S. viewers (millions) = 15.85
+predicted query: SELECT Writer FROM table WHERE U.S. viewers (millions) = 15.85
+
+<s> ### Table
+col : Player | No.(s) | Height in Ft. | Position | Years with Spurs | School/Previous Club Team/Country row 1 : Ahearn, Blake Blake Ahearn | 18 | 6-2 | Guard | 2008-09 | Missouri State row 2 : Alexander, Cory Cory Alexander | 1 | 6-1 | Guard | 1995-98 | Virginia row 3 : Anderson, Derek Derek Anderson | 1 | 6-5 | Guard | 2000-01 | Kentucky
+### Question
+What is Player, when Years With Spurs is 1988-95?
+### SQL
+SELECT Player FROM table WHERE Years with Spurs = 1988-95</s>
+
+label query: SELECT Player FROM table WHERE Years with Spurs = 1988-95
+predicted query: SELECT Player FROM table WHERE Years with Spurs = 1988-95
+```

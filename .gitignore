@@ -2,3 +2,6 @@ data/
 __pycache__/
 *.log
 .vscode/
+tmp_trainer/
+data_resplit/
+.env
