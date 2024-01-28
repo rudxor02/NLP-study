@@ -193,35 +193,6 @@ class MyLoraModelWrapper(PreTrainedModel):
     def generate(self, *args: Any, **kwargs: Any):
         return self.my_lora_inner_model.generate(*args, **kwargs)
 
-    # def state_dict(
-    #     self,
-    #     *args: Any,
-    #     destination: Optional[OrderedDict[str, Any]] = None,
-    #     prefix: str = "",
-    #     keep_vars: bool = False,
-    # ):
-    #     """
-    #     override nn.Module.state_dict
-    #     """
-    #     # for _name, module in self.my_lora_inner_model.named_modules():
-    #     #     if isinstance(module, MyLoraLinear) and isinstance(
-    #     #         module._my_lora_wrapper_layer_A, FSDP
-    #     #     ):
-    #     #         return super().state_dict(
-    #     #             *args,
-    #     #             destination=destination,
-    #     #             prefix=prefix,
-    #     #             keep_vars=keep_vars,
-    #     #         )
-    #     original_state_dict = self.my_lora_inner_model.state_dict(
-    #         *args,
-    #         destination=destination,
-    #         prefix=prefix,
-    #         keep_vars=keep_vars,
-    #     )
-
-    #     return original_state_dict
-
     def print_trainable_parameters(self):
         total_prams = 0
         trainable_params = 0
@@ -244,9 +215,6 @@ def train_with_my_lora(
     wrapper_model = MyLoraModelWrapper(model, my_lora_config)
 
     wrapper_model.print_trainable_parameters()
-
-    print(wrapper_model.state_dict())
-    raise
 
     collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
