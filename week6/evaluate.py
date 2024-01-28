@@ -109,9 +109,6 @@ def test(tokenizer: LlamaTokenizer, model: LlamaModel, examples: list[dict[str, 
 
         label_query = example["label"]
 
-        print(output)
-        raise
-
         _, _, predicted_query = output.partition("### SQL\n")
         predicted_query = predicted_query.replace("</s>", "").replace("\n", "")
 

@@ -67,13 +67,17 @@ class MyLoraLinear(nn.Module):
 
     def forward(self, input: Tensor, *args: Any, **kwargs: Any):
         if self.training:
-            original_ret = self._my_lora_inner_layer(input)
-            ret = (
-                self._my_lora_wrapper_layer_B(
-                    self._my_lora_wrapper_layer_A(self._my_lora_dropout(input))
-                )
-                * self._my_lora_scaling
-            ) + original_ret
+            # low performance
+            # original_ret = self._my_lora_inner_layer(input)
+            # ret = (
+            #     self._my_lora_wrapper_layer_B(
+            #         self._my_lora_wrapper_layer_A(self._my_lora_dropout(input))
+            #     )
+            #     * self._my_lora_scaling
+            # ) + original_ret
+            ret = self._my_lora_wrapper_layer_B(
+                self._my_lora_wrapper_layer_A(input)
+            ) + self._my_lora_inner_layer(input)
         else:
             if not hasattr(self, "cached_lora_weight"):
                 self.cached_lora_weight = self._my_lora_merged_weight()

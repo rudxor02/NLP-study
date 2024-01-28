@@ -25,7 +25,7 @@ if __name__ == "__main__":
     local_path = config.lib_checkpoint_path
     tokenizer = load_pretrained_tokenizer()
     # model = load_pretrained_model()
-    model = load_from_cpu_state_dict("week7/data/cpu_state.pt")
+    model = load_from_cpu_state_dict("week7/data/cpu_state_v1.pt")
     test_dataset = load_test_dataset_()
     test_dataset = test_dataset.shuffle()
     test_dataset = preprocess_test_dataset(test_dataset)

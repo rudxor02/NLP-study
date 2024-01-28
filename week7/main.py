@@ -173,4 +173,4 @@ if __name__ == "__main__":
     torch.manual_seed(123456)
 
     WORLD_SIZE = torch.cuda.device_count()
-    mp.spawn(fsdp_main, args=(WORLD_SIZE, 1, "v0"), nprocs=WORLD_SIZE, join=True)
+    mp.spawn(fsdp_main, args=(WORLD_SIZE, 1, "v1"), nprocs=WORLD_SIZE, join=True)
