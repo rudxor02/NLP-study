@@ -463,3 +463,24 @@ SELECT Player FROM table WHERE Years with Spurs = 1988-95</s>
 label query: SELECT Player FROM table WHERE Years with Spurs = 1988-95
 predicted query: SELECT Player FROM table WHERE Years with Spurs = 1988-95
 ```
+
+# Week7
+
+torch의 FSDP를 이용하여 Week6의 과제를 구현합니다.
+
+## train
+
+```bash
+python3 week7/train.py
+```
+
+## evaluate
+
+```bash
+python3 week7/evaluate.py
+```
+
+```text
+...
+accuracy: 0.66
+```
