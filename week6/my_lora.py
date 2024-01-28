@@ -5,6 +5,9 @@ import torch
 from datasets import DatasetDict
 from pydantic import BaseModel
 from torch import Tensor, nn
+from torch.distributed.fsdp.fully_sharded_data_parallel import (
+    FullyShardedDataParallel as FSDP,
+)
 from transformers import (
     DataCollatorForLanguageModeling,
     LlamaConfig,
@@ -42,12 +45,20 @@ class MyLoraLinear(nn.Module):
 
     def _my_lora_init_wrapper_layer(self):
         self._my_lora_wrapper_layer_A = nn.Linear(
-            self._my_lora_inner_layer.in_features, self._my_lora_config.r, bias=False
+            self._my_lora_inner_layer.in_features,
+            self._my_lora_config.r,
+            bias=False,
         )
 
+        self._my_lora_wrapper_layer_A.is_my_lora_layer = True
+
         self._my_lora_wrapper_layer_B = nn.Linear(
-            self._my_lora_config.r, self._my_lora_inner_layer.out_features, bias=False
+            self._my_lora_config.r,
+            self._my_lora_inner_layer.out_features,
+            bias=False,
         )
+
+        self._my_lora_wrapper_layer_B.is_my_lora_layer = True
 
     def _my_lora_freeze_gradient(self):
         self._my_lora_inner_layer.requires_grad_(False)
@@ -56,25 +67,29 @@ class MyLoraLinear(nn.Module):
 
     def forward(self, input: Tensor, *args: Any, **kwargs: Any):
         if self.training:
-            # performance very low
-            # ret = self._my_lora_inner_layer(input)
-            # ret = self._my_lora_dropout(ret)
+            # low performance
+            # original_ret = self._my_lora_inner_layer(input)
             # ret = (
-            #     self._my_lora_wrapper_layer_B(self._my_lora_wrapper_layer_A(ret))
+            #     self._my_lora_wrapper_layer_B(
+            #         self._my_lora_wrapper_layer_A(self._my_lora_dropout(input))
+            #     )
             #     * self._my_lora_scaling
-            # ) + ret
+            # ) + original_ret
             ret = self._my_lora_wrapper_layer_B(
                 self._my_lora_wrapper_layer_A(input)
             ) + self._my_lora_inner_layer(input)
         else:
-            raise NotImplementedError
-
+            if not hasattr(self, "cached_lora_weight"):
+                self.cached_lora_weight = self._my_lora_merged_weight()
+            ret = input @ self.cached_lora_weight.T
         return ret
 
     def _my_lora_merged_weight(self):
+        layer_A_weight = self._my_lora_wrapper_layer_A.weight
+        layer_B_weight = self._my_lora_wrapper_layer_B.weight
         return (
-            self._my_lora_wrapper_layer_B.weight @ self._my_lora_wrapper_layer_A.weight
-            + self._my_lora_inner_layer.weight
+            layer_B_weight.detach() @ layer_A_weight.detach()
+            + self._my_lora_inner_layer.weight.detach()
         )
 
     def _save_to_state_dict(
@@ -83,6 +98,8 @@ class MyLoraLinear(nn.Module):
         """
         override nn.Module._save_to_state_dict
         """
+        if isinstance(self._my_lora_wrapper_layer_A, FSDP):
+            return super()._save_to_state_dict(destination, prefix, keep_vars)
         destination[prefix.replace("_my_lora_inner_layer", "") + "weight"] = (
             self._my_lora_merged_weight()
             if keep_vars
@@ -99,17 +116,24 @@ class MyLoraLinear(nn.Module):
         """
         override nn.Module.state_dict
         """
+        if isinstance(self._my_lora_wrapper_layer_A, FSDP):
+            return super().state_dict(
+                *args,
+                destination=destination,
+                prefix=prefix,
+                keep_vars=keep_vars,
+            )
         if destination is None:
             destination = OrderedDict()
         self._save_to_state_dict(destination, prefix, keep_vars)
         return destination
 
 
-class MyLoraWrapper(PreTrainedModel):
+class MyLoraModelWrapper(PreTrainedModel):
     def __init__(self, model: nn.Module, config: MyLoraConfig):
         super().__init__(config=LlamaConfig())
-        self._my_lora_inner_model = model
-        self._my_lora_inner_model.requires_grad_(False)
+        self.my_lora_inner_model = model
+        self.my_lora_inner_model.requires_grad_(False)
         self._my_lora_config = config
         self._my_lora_init_wrapper_model()
 
@@ -123,14 +147,14 @@ class MyLoraWrapper(PreTrainedModel):
         module_path = name.split(".")[:-1]
         module_name = name.split(".")[-1]
 
-        current_module = self._my_lora_inner_model
+        current_module = self.my_lora_inner_model
         for path in module_path:
             current_module = getattr(current_module, path)
         setattr(current_module, module_name, module)
 
     def _my_lora_init_wrapper_model(self):
         modules_to_replace = {}
-        for name, module in self._my_lora_inner_model.named_modules():
+        for name, module in self.my_lora_inner_model.named_modules():
             if self._my_lora_is_replacable(name, module):
                 modules_to_replace[name] = MyLoraLinear(module, self._my_lora_config)
 
@@ -153,7 +177,7 @@ class MyLoraWrapper(PreTrainedModel):
         """
         just forward to inner model
         """
-        return self._my_lora_inner_model.forward(
+        return self.my_lora_inner_model.forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -166,29 +190,13 @@ class MyLoraWrapper(PreTrainedModel):
             return_dict=return_dict,
         )
 
-    def state_dict(
-        self,
-        *args: Any,
-        destination: Optional[OrderedDict[str, Any]] = None,
-        prefix: str = "",
-        keep_vars: bool = False,
-    ):
-        """
-        override nn.Module.state_dict
-        """
-        original_state_dict = self._my_lora_inner_model.state_dict(
-            *args,
-            destination=destination,
-            prefix=prefix,
-            keep_vars=keep_vars,
-        )
-
-        return original_state_dict
+    def generate(self, *args: Any, **kwargs: Any):
+        return self.my_lora_inner_model.generate(*args, **kwargs)
 
     def print_trainable_parameters(self):
         total_prams = 0
         trainable_params = 0
-        for _name, module in self._my_lora_inner_model.named_modules():
+        for _name, module in self.my_lora_inner_model.named_modules():
             for param in module.parameters():
                 total_prams += np.prod(param.size())
                 if param.requires_grad:
@@ -204,7 +212,7 @@ def train_with_my_lora(
     my_lora_config = MyLoraConfig(
         r=config.lora_r, lora_alpha=config.lora_alpha, lora_dropout=config.lora_dropout
     )
-    wrapper_model = MyLoraWrapper(model, my_lora_config)
+    wrapper_model = MyLoraModelWrapper(model, my_lora_config)
 
     wrapper_model.print_trainable_parameters()
 

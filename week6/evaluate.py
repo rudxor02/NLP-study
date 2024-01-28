@@ -15,7 +15,7 @@ from week6.config import config
 from week6.table_linearize import IndexedRowTableLinearize
 
 
-def load_dataset_():
+def load_test_dataset_():
     test_dataset = load_dataset(
         "wikisql", cache_dir="week6/data/datasets", split="test"
     )
@@ -30,7 +30,7 @@ def load_tokenizer(local_path: str) -> LlamaTokenizer:
     return tokenizer
 
 
-def preprocess_dataset(dataset: DatasetDict) -> DatasetDict:
+def preprocess_test_dataset(dataset: DatasetDict) -> DatasetDict:
     linearizer = IndexedRowTableLinearize()
 
     def format_dataset(example: dict[str, Any]):
@@ -80,12 +80,16 @@ class StopOnTokens(StoppingCriteria):
 def test(tokenizer: LlamaTokenizer, model: LlamaModel, examples: list[dict[str, Any]]):
     model.to("cuda:5")
     model.eval()
-
+    tokenizer.eos_token = None
+    tokenizer.eos_token_id = None
+    tokenizer.add_eos_token = False
     correct_count = 0
 
     for example_idx, example in enumerate(examples):
         prompt = example["prompt"]
-        prompt_encodings = tokenizer(prompt, return_tensors="pt")
+        prompt_encodings = tokenizer(
+            prompt, return_tensors="pt", add_special_tokens=True
+        )
 
         prompt_encodings = prompt_encodings.to("cuda:5")
 
@@ -101,7 +105,7 @@ def test(tokenizer: LlamaTokenizer, model: LlamaModel, examples: list[dict[str, 
             stopping_criteria=StoppingCriteriaList([StopOnTokens()]),
         )
 
-        output = tokenizer.decode(prompt_output[0])
+        output = tokenizer.decode(prompt_output[0], skip_special_tokens=False)
 
         label_query = example["label"]
 
@@ -124,8 +128,8 @@ if __name__ == "__main__":
     local_path = config.lib_checkpoint_path
     tokenizer = load_tokenizer(local_path)
     model = load_model(local_path)
-    test_dataset = load_dataset_()
+    test_dataset = load_test_dataset_()
     test_dataset = test_dataset.shuffle()
-    test_dataset = preprocess_dataset(test_dataset)
+    test_dataset = preprocess_test_dataset(test_dataset)
     examples = test_dataset.select(range(100))
     test(tokenizer, model, examples)
