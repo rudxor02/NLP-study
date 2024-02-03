@@ -79,21 +79,14 @@ if __name__ == "__main__":
     model = load_pretrained_model()
     demonstration_dict, dataset = load_antonyms_demonstration_dict_and_dataset()
     lang = LangEnum.EN
-    # test_antonyms_baseline(
-    #     model=model,
-    #     tokenizer=tokenizer,
-    #     dataset=dataset,
-    #     demonstration_dict=demonstration_dict,
-    #     lang=lang,
-    # )
-    # test_antonyms_regular(
-    #     model=model,
-    #     tokenizer=tokenizer,
-    #     dataset=dataset,
-    #     demonstration_dict=demonstration_dict,
-    #     lang=lang,
-    # )
-    test_antonyms_hypothesis(
+    test_antonyms_baseline(
+        model=model,
+        tokenizer=tokenizer,
+        dataset=dataset,
+        demonstration_dict=demonstration_dict,
+        lang=lang,
+    )
+    test_antonyms_regular(
         model=model,
         tokenizer=tokenizer,
         dataset=dataset,
