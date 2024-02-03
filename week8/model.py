@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from torch import Tensor, nn
+from torch.utils.hooks import RemovableHandle
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -26,6 +27,7 @@ def load_pretrained_tokenizer() -> LlamaTokenizer:
     tokenizer.pad_token_id = tokenizer.unk_token_id
     print("tokenizer loaded")
     import warnings
+
     warnings.filterwarnings("ignore")
     return tokenizer
 
@@ -40,7 +42,7 @@ def load_pretrained_model() -> LlamaForCausalLM:
 
 def add_patch_task_vector_hook(
     model: LlamaForCausalLM, task_vector: Tensor, layer_idx: int
-):
+) -> RemovableHandle:
     # task_vector shape: [hidden_size]
     def hook(module: nn.Module, input: tuple[Tensor], output: tuple[Tensor] | Tensor):
         if isinstance(output, Tensor):
@@ -49,7 +51,7 @@ def add_patch_task_vector_hook(
         output[0][0, -1] = task_vector
         return output
 
-    model.model.layers[layer_idx].register_forward_hook(hook)
+    return model.model.layers[layer_idx].register_forward_hook(hook)
 
 
 def extract_task_vector(
