@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Optional
 
 from torch import Tensor
@@ -32,7 +33,7 @@ def measure_accuracy(
     if task_vector is not None:
         if layer_idx is None:
             raise ValueError("layer_idx must be provided if task_vector is provided")
-        add_patch_task_vector_hook(
+        hook_handler = add_patch_task_vector_hook(
             model=model, task_vector=task_vector, layer_idx=layer_idx
         )
     examples = dataset.items[:]
@@ -55,6 +56,8 @@ def measure_accuracy(
         output = output.split("→")[-1]
         if compare_synonyms(word1=output, word2=label, lang=lang):
             total_correct += 1
+    if task_vector is not None:
+        hook_handler.remove()
     return total_correct / len(examples)
 
 
@@ -91,12 +94,18 @@ def test_hypothesis(
 
     demonstration = construct_demonstration(demonstration_dict)
 
-    accuracies = [
-        [0.0 for _ in range(config.num_layers)] for _ in range(config.num_layers)
-    ]
+    if os.path.exists(result_path):
+        with open(result_path, "r") as f:
+            accuracies = json.load(f)
+    else:
+        accuracies = [
+            [0.0 for _ in range(config.num_layers)] for _ in range(config.num_layers)
+        ]
 
     for i in range(config.num_layers):
         for j in range(config.num_layers):
+            if accuracies[i][j] != 0.0:
+                continue
             layer_index_from = i
             layer_index_to = j
             print("=" * 20)
@@ -125,8 +134,8 @@ def test_hypothesis(
 
             print(f"accuracy: {accuracy}")
 
-    with open(result_path, "w") as f:
-        json.dump(accuracies, f)
+            with open(result_path, "w") as f:
+                json.dump(accuracies, f)
 
 
 def test_baseline(
