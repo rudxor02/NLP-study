@@ -9,7 +9,7 @@ class LangEnum(Enum):
 
 
 def get_synonyms(word: str, lang: LangEnum) -> set[str]:
-    synsets = wn.synsets(word, lang=lang)
+    synsets = wn.synsets(word, lang=lang.value)
     synonyms: set[str] = set(word)
     for synset in synsets:
         for lemma in synset.lemmas(lang=lang.value):
