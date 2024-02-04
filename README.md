@@ -520,4 +520,4 @@ python3 week8/plot.py
 
 ### overall results
 
-![Alt text](week8/assets/overall_results.png)
+![Alt text](week8/assets/overall_results_2.png)
