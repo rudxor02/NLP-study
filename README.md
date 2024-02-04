@@ -484,3 +484,40 @@ python3 week7/evaluate.py
 ...
 accuracy: 0.66
 ```
+
+# Week8
+
+two-shot에서 ICL(in-context-learning) 할 때 model이 task의 정보를 어떻게 이해하고 있는지를 담고 있는 task vector를 따로 떼서 zero shot할 때와의 퍼포먼스를 비교합니다.
+
+(참고 논문)[https://arxiv.org/abs/2310.15916]
+
+## test
+
+```bash
+python3 week8/test_antonyms.py
+python3 week8/test_en_es.py
+python3 week8/test_location_country.py
+```
+
+## plot
+
+```bash
+# comment out each line in main code block
+python3 week8/plot.py
+```
+
+### antonyms
+
+![Alt text](week8/assets/antonyms_hypothesis_results.png)
+
+### en_es
+
+![Alt text](week8/assets/en_es_hypothesis_results.png)
+
+### location_country
+
+![Alt text](week8/assets/location_country_hypothesis_results.png)
+
+### overall results
+
+![Alt text](week8/assets/overall_results.png)
