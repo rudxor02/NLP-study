@@ -489,7 +489,7 @@ accuracy: 0.66
 
 two-shot에서 ICL(in-context-learning) 할 때 model이 task의 정보를 어떻게 이해하고 있는지를 담고 있는 task vector를 따로 떼서 zero shot할 때와의 퍼포먼스를 비교합니다.
 
-(참고 논문)[https://arxiv.org/abs/2310.15916]
+[참고 논문](https://arxiv.org/abs/2310.15916)
 
 ## test
 

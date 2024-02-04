@@ -94,8 +94,8 @@ def plot_overall_results():
 
 
 if __name__ == "__main__":
-    plot_hypothesis_results(config.antonyms_hypothesis_result_path)
-    plot_hypothesis_results(config.en_es_hypothesis_result_path)
-    plot_hypothesis_results(config.location_country_hypothesis_result_path)
+    # plot_hypothesis_results(config.antonyms_hypothesis_result_path)
+    # plot_hypothesis_results(config.en_es_hypothesis_result_path)
+    # plot_hypothesis_results(config.location_country_hypothesis_result_path)
 
     plot_overall_results()
